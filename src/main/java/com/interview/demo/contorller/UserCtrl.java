@@ -26,14 +26,14 @@ public class UserCtrl {
     public UserRoleService userRoleService;
 
     //查詢所有會員資料(完成)
-    @Operation(description = "查詢所有會員資料")
+    @Operation(summary = "查詢所有會員資料")
     @GetMapping
     public List<User> findAllUser(){
         return userService.findAll();
     }
 
     //查詢單一會員資料(完成)
-    @Operation(description = "查詢單一會員資料")
+    @Operation(summary = "查詢單一會員資料")
     @GetMapping("/{userId}")
     public Optional<User> findUserById(@PathVariable @Parameter(description = "會員 ID", required = true) String userId){
         Optional<User> theUser = userService.findById(userId);
@@ -43,7 +43,7 @@ public class UserCtrl {
         return theUser;
     }
 
-    @Operation(description = "會員註冊")
+    @Operation(summary = "會員註冊")
     @PostMapping
     public User register(@RequestBody User theUser) {
 
@@ -61,7 +61,7 @@ public class UserCtrl {
     }
 
     //依會員帳號更改會員內容(完成)
-    @Operation(description = "更新會員資料")
+    @Operation(summary = "更新會員資料")
     @PutMapping("/{userId}")
     public User updateUserDetail(@PathVariable String userId, @RequestBody User theUser){
         Optional<User> optionalUser = userService.findById(userId);

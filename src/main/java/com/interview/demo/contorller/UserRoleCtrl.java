@@ -3,6 +3,7 @@ package com.interview.demo.contorller;
 
 import com.interview.demo.entity.UserRole;
 import com.interview.demo.service.UserRoleService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +20,7 @@ public class UserRoleCtrl {
 
 
     //更改會員角色屬性(未完成)
+    @Operation(summary ="更改會員角色屬性")
     @PutMapping("/{roleId}")
     public UserRole updateUserRole(@PathVariable String roleId,
                                         @RequestBody UserRole theRoleId){

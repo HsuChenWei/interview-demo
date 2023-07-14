@@ -30,7 +30,7 @@ public class BookingCtrl {
     private RoomService roomService;
 
     //查詢用戶個人所有會議室訂單（完成）
-    @Operation(description = "個人訂單查詢")
+    @Operation(summary = "個人訂單查詢")
     @GetMapping("/{userId}")
     public List<Booking> findBookingById(@PathVariable String userId) {
         List<Booking> theBooking = bookingService.findAllBookingByUserId(userId);
@@ -41,7 +41,7 @@ public class BookingCtrl {
     }
 
     //查詢所有會議室訂單(完成)
-    @Operation(description = "查詢所有會議室訂單")
+    @Operation(summary = "查詢所有會議室訂單")
     @GetMapping
     public List<Booking> findAllBooking(){
         return bookingService.findAllBooking();
@@ -49,14 +49,14 @@ public class BookingCtrl {
 
 
     //取消會議室訂單(完成，CORSFilter/WebSecurityConfiguration權限)
-    @Operation(description = "取消會議室訂單")
+    @Operation(summary = "取消會議室訂單")
     @DeleteMapping("/{bookingId}")
     public void deleteBookingDetail(@PathVariable String bookingId){
         bookingService.deleteByUserId(bookingId);
     }
 
     //預定會議室(完成)
-    @Operation(description = "預定會議室")
+    @Operation(summary = "預定會議室")
     @PostMapping
     public Booking addBooking(@RequestBody Booking theBooking){
         Room bookingRoom = theBooking.getRoom();
@@ -108,7 +108,7 @@ public class BookingCtrl {
     }
 
     //依指定BookingId更改會議室預定欄位(完成)
-    @Operation(description = "更改會議室")
+    @Operation(summary = "更改會議室")
     @PutMapping("/{bookingId}")
     public Booking updateBookingDetail(@PathVariable String bookingId, @RequestBody Booking theBooking) {
         Optional<Booking> optionalBooking = bookingService.findByBookingId(bookingId);
