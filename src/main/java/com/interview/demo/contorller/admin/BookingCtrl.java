@@ -1,9 +1,7 @@
-package com.interview.demo.contorller;
+package com.interview.demo.contorller.admin;
 
 
 import com.interview.demo.entity.Booking;
-import com.interview.demo.entity.Room;
-import com.interview.demo.entity.User;
 import com.interview.demo.service.BookingService;
 import com.interview.demo.service.RoomService;
 import com.interview.demo.service.UserService;
@@ -13,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
+
 
 @RestController
 @RequestMapping("/api/booking")
@@ -22,23 +20,20 @@ public class BookingCtrl {
 
     @Autowired
     private BookingService bookingService;
-
     @Autowired
     private UserService userService;
-
     @Autowired
     private RoomService roomService;
+
 
     //查詢用戶個人所有會議室訂單（完成）
     @Operation(summary = "個人訂單查詢")
     @GetMapping("/{userId}")
     public List<Booking> findBookingById(@PathVariable String userId) {
         List<Booking> theBooking = bookingService.findAllBookingByUserId(userId);
-        if (theBooking == null) {
-            throw new RuntimeException("Can't find the userId:" + userId);
-        }
         return theBooking;
     }
+
 
     //查詢所有會議室訂單(完成)
     @Operation(summary = "查詢所有會議室訂單")
@@ -55,24 +50,11 @@ public class BookingCtrl {
         bookingService.deleteByUserId(bookingId);
     }
 
-    //預定會議室(完成)
+    //預定會議室(未完成)
     @Operation(summary = "預定會議室")
     @PostMapping
     public Booking addBooking(@RequestBody Booking theBooking){
-        Room bookingRoom = theBooking.getRoom();
-        User bookingUser = theBooking.getUser();
-
-        if (bookingRoom != null && bookingRoom.getId() == 0 ) {
-
-            Room savedRoom = roomService.save(bookingRoom);
-            theBooking.setRoom(savedRoom);
-        }
-        if (bookingUser != null && bookingUser.getId() == null) {
-
-            User savedUser = userService.save(bookingUser);
-            theBooking.setUser(savedUser);
-        }
-
+        //時間區間
 //        MeetingRoomScheduler scheduler = new MeetingRoomScheduler();
 //        List<TimeSlot> bookedTimeSlots = scheduler.getBookedTimeSlots();
 //        // 检查预定时间是否与已预订的时间段重叠
@@ -111,22 +93,10 @@ public class BookingCtrl {
     @Operation(summary = "更改會議室")
     @PutMapping("/{bookingId}")
     public Booking updateBookingDetail(@PathVariable String bookingId, @RequestBody Booking theBooking) {
-        Optional<Booking> optionalBooking = bookingService.findByBookingId(bookingId);
-
-        if (optionalBooking.isPresent()) {
-            Booking dbBooking = optionalBooking.get();
-
-            dbBooking.setRoom(theBooking.getRoom());
-            dbBooking.setEndTime(theBooking.getEndTime());
-            dbBooking.setStartTime(theBooking.getStartTime());
-
-            Booking savedBooking = bookingService.save(dbBooking);
-            return savedBooking;
-        } else {
-            throw new RuntimeException("Can't found BookingId：" + bookingId);
-        }
-
+        Booking updateBooking = bookingService.updateBookingDetail(bookingId, theBooking);
+        return updateBooking;
     }
+
 
 //    private boolean isTimeOverlapping(LocalTime startTime1, LocalTime endTime1, LocalTime startTime2, LocalTime endTime2) {
 //        return startTime1.isBefore(endTime2) && endTime1.isAfter(startTime2);

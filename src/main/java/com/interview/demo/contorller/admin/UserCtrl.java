@@ -1,5 +1,6 @@
-package com.interview.demo.contorller;
+package com.interview.demo.contorller.admin;
 
+import com.interview.demo.entity.Booking;
 import com.interview.demo.entity.User;
 import com.interview.demo.entity.UserRole;
 import com.interview.demo.service.UserRoleService;
@@ -37,26 +38,13 @@ public class UserCtrl {
     @GetMapping("/{userId}")
     public Optional<User> findUserById(@PathVariable @Parameter(description = "會員 ID", required = true) String userId){
         Optional<User> theUser = userService.findById(userId);
-        if (theUser == null){
-            throw  new RuntimeException("Can't find the userID:"+ userId);
-        }
         return theUser;
     }
 
     @Operation(summary = "會員註冊")
     @PostMapping
     public User register(@RequestBody User theUser) {
-
         User dbUser = userService.save(theUser);//註冊會員資料
-
-        // 創建UserRole
-        UserRole userRole = new UserRole();
-        userRole.setId(dbUser.getId()); // 讓user_id存至role_id
-        userRole.setUserType(0); // 設置註冊新用戶類型為0
-
-        // 保存用戶角色
-        userRoleService.save(userRole);
-
         return dbUser;
     }
 
@@ -64,18 +52,20 @@ public class UserCtrl {
     @Operation(summary = "更新會員資料")
     @PutMapping("/{userId}")
     public User updateUserDetail(@PathVariable String userId, @RequestBody User theUser){
-        Optional<User> optionalUser = userService.findById(userId);
-        if (optionalUser.isPresent()) {
-            User dbUser = optionalUser.get();
-
-            dbUser.setUserName(theUser.getUserName());
-            dbUser.setUserPwd(theUser.getUserPwd());
-
-            User saveUser = userService.save(dbUser);
-            return saveUser;
-        } else {
-            throw new RuntimeException("Can't found UserId：" + userId);
-        }
+//        Optional<User> getUser = userService.findById(userId, theUser);
+//        Optional<User> optionalUser = userService.findById(userId);
+//        if (optionalUser.isPresent()) {
+//            User dbUser = optionalUser.get();
+//
+//            dbUser.setUserName(theUser.getUserName());
+//            dbUser.setUserPwd(theUser.getUserPwd());
+//
+//            User saveUser = userService.save(dbUser);
+//            return saveUser;
+//        } else {
+//            throw new RuntimeException("Can't found UserId：" + userId);
+//        }
+        return theUser;
     }
 
 

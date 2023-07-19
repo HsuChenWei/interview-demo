@@ -13,6 +13,6 @@ public class RoomServiceImpl implements RoomService {
     private RoomRepository roomRepository;
     @Override
     public Room save(Room room) {
-        return null;
+        return roomRepository.save(room);
     }
 }

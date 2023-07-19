@@ -17,7 +17,11 @@ public interface BookingService {
 
     void deleteByUserId(String bookingId);
 
+    Booking updateBookingDetail(String bookingId, Booking theBooking);
+
     Booking save(Booking theBooking);
+
+
 
 
 }

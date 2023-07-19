@@ -1,4 +1,4 @@
-package com.interview.demo.contorller;
+package com.interview.demo.contorller.admin;
 
 
 import com.interview.demo.entity.UserRole;
@@ -19,7 +19,8 @@ public class UserRoleCtrl {
     private UserRoleService userRoleService;
 
 
-    //更改會員角色屬性(未完成)
+    //更改會員角色屬性(未完成，ServiceImpl有型別問題)
+    //不改到service是可以動
     @Operation(summary ="更改會員角色屬性")
     @PutMapping("/{roleId}")
     public UserRole updateUserRole(@PathVariable String roleId,
@@ -36,5 +37,8 @@ public class UserRoleCtrl {
         } else {
             throw new RuntimeException("Can't found UserId：" + roleId);
         }
+//        UserRole updatedUserRole = new UserRole();
+//        updatedUserRole.setId(roleId);
+//        return updatedUserRole;
     }
 }
