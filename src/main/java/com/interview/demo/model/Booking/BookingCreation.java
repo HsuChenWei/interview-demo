@@ -6,7 +6,7 @@ import lombok.Data;
 import java.sql.Timestamp;
 
 @Data
-public class ChangeBookingDetail {
+public class BookingCreation {
 
     @Schema(description = "會議室 ID")
     private int roomId;

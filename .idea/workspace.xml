@@ -4,7 +4,56 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c0cc39e1-eeff-43b6-8ebe-dfcc9a36c4fe" name="Changes" comment="" />
+    <list default="true" id="c0cc39e1-eeff-43b6-8ebe-dfcc9a36c4fe" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/interview/demo/model/Booking/ChangeBookingDetail.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/interview/demo/model/Booking/BookingUpdates.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/interview/demo/repository/BookingRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/interview/demo/repository/BookingRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/interview/demo/repository/querydsl/QuerydslRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/interview/demo/repository/querydsl/QuerydslRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/interview/demo/repository/querydsl/QuerydslRepositoryImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/interview/demo/repository/querydsl/QuerydslRepositoryImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/interview/demo/service/BookingService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/interview/demo/service/BookingService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/interview/demo/service/impl/BookingServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/interview/demo/service/impl/BookingServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/app/DemoApplication.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/config/CORSFilter.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/config/CorsConfiguration$1.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/config/CorsConfiguration.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/config/DataBindConfiguration$1.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/config/DataBindConfiguration.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/config/WebSecurityConfiguration.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/contorller/admin/RoomCtrl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/contorller/admin/UserCtrl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/contorller/admin/UserRoleCtrl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/entity/Booking.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/entity/MeetingRoomScheduler.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/entity/Room.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/entity/TimeSlot.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/entity/UpdateUser.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/entity/User.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/entity/UserRole.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/error/ApiError.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/error/ApiErrorCode.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/error/RestApiException.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/hibernate/Snowflake.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/hibernate/SnowflakeIDGenerator.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/model/Booking/BookingDto.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/model/Booking/ChangeBookingDetail.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/model/Booking/SearchBooking.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/model/Room/RoomDto.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/model/User/UserDto.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/model/UserRole/UserRoleDto.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/model/wrapper/RespWrapper$Pagination.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/model/wrapper/RespWrapper.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/repository/BookingRepository.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/repository/RoomRepository.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/repository/UserRepository.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/repository/UserRoleRepository.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/service/BookingService.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/service/RoomService.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/service/UserRoleService.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/service/UserService.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/service/impl/RoomServiceImpl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/interview/demo/service/impl/UserServiceImpl.class" beforeDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -24,7 +73,20 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="JpbToolWindowState">
-    <option name="isToolWindowVisible" value="false" />
+    <option name="myId2FirstActivated">
+      <map>
+        <entry key="com.haulmont.jpb.jpaInspector" value="true" />
+        <entry key="com.haulmont.jpb.jpaPalette" value="true" />
+        <entry key="com.haulmont.jpb.jpaStructure" value="true" />
+      </map>
+    </option>
+    <option name="myId2Visible">
+      <map>
+        <entry key="com.haulmont.jpb.jpaInspector" value="true" />
+        <entry key="com.haulmont.jpb.jpaPalette" value="true" />
+        <entry key="com.haulmont.jpb.jpaStructure" value="false" />
+      </map>
+    </option>
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
@@ -41,19 +103,24 @@
     <option name="showLibraryContents" value="true" />
     <option name="showVisibilityIcons" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/xuchenwei/interview-demo/src/main/java/com/interview/demo/config&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;vcs.Git&quot;
-  }
-}</component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/src/main/java/com/interview/demo/repository" />
+    <property name="project.structure.last.edited" value="Modules" />
+    <property name="project.structure.proportion" value="0.0" />
+    <property name="project.structure.side.proportion" value="0.0" />
+    <property name="settings.editor.selected.configurable" value="MavenSettings" />
+  </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/main/java/com/interview/demo/repository" />
       <recent name="$PROJECT_DIR$/src/main/java/com/interview/demo/config" />
       <recent name="$PROJECT_DIR$/src/main/java/com/interview/demo/error" />
       <recent name="$PROJECT_DIR$/src/main/java/com/interview/demo/model/wrapper" />
+    </key>
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="com.interview.demo.model.Booking" />
     </key>
   </component>
   <component name="RunManager">

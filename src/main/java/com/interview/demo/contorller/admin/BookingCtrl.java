@@ -34,7 +34,7 @@ public class BookingCtrl {
     //查詢用戶個人所有會議室訂單（完成）
     @Operation(summary = "個人訂單查詢")
     @GetMapping("/{userId}")
-    public List<Booking> findBookingById(@PathVariable String userId) {
+    public List<BookingDto> findBookingById(@PathVariable String userId) {
         List<Booking> theBooking = bookingService.findAllBookingByUserId(userId);
         return theBooking;
     }

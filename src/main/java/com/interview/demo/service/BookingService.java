@@ -1,6 +1,8 @@
 package com.interview.demo.service;
 
 import com.interview.demo.entity.Booking;
+import com.interview.demo.model.Booking.BookingCreation;
+import com.interview.demo.model.Booking.BookingUpdates;
 import com.interview.demo.model.Booking.SearchBooking;
 
 import java.util.List;
@@ -10,21 +12,14 @@ public interface BookingService {
 
     List<Booking> findAllBooking();
 
-    Optional<Booking> findByUserId(String UserId);
+    List<Booking> findByUserId(String UserId);
 
-    Optional<Booking> findByBookingId(String bookingId);
+    Optional<Booking> findBookingById(String id);
 
-    List<Booking> findAllBookingByUserId(String userId);
+    void deleteBookingById(String id);
 
-    void deleteByUserId(String bookingId);
+    Booking updateBooking(String id, BookingUpdates updates);
 
-    Booking updateBookingDetail(String bookingId, Booking theBooking);
-
-    Booking save(Booking theBooking);
-
-//    Optional<List<Booking>> searchAllBooking(String userId, SearchBooking body);
-
-
-
+    Booking save(BookingCreation creation);
 
 }

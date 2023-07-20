@@ -2,12 +2,15 @@ package com.interview.demo.service.impl;
 
 import com.interview.demo.entity.Room;
 import com.interview.demo.entity.User;
+import com.interview.demo.model.Booking.BookingCreation;
+import com.interview.demo.model.Booking.BookingUpdates;
 import com.interview.demo.model.Booking.SearchBooking;
 import com.interview.demo.repository.BookingRepository;
 import com.interview.demo.entity.Booking;
 import com.interview.demo.repository.RoomRepository;
 import com.interview.demo.repository.UserRepository;
 import com.interview.demo.service.BookingService;
+import io.vavr.control.Option;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,20 +20,17 @@ import java.util.Optional;
 @Service
 public class BookingServiceImpl implements BookingService {
 
+    @Autowired
+    private QuerydslRepository queryCtx;
 
     @Autowired
-    public BookingRepository bookingRepository;
-    private final RoomRepository roomRepository;
-    private final UserRepository userRepository;
+    private BookingRepository bookingRepository;
 
     @Autowired
-    public BookingServiceImpl(BookingRepository bookingRepository,
-                              RoomRepository roomRepository,
-                              UserRepository userRepository) {
-        this.bookingRepository = bookingRepository;
-        this.roomRepository = roomRepository;
-        this.userRepository = userRepository;
-    }
+    private RoomRepository roomRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
 
     @Override
@@ -40,8 +40,29 @@ public class BookingServiceImpl implements BookingService {
 
 
     @Override
-    public Optional<Booking> findByUserId(String userId) {
+    public List<Booking> findByUserId(String userId) {
         return bookingRepository.findByUserId(userId);
+    }
+
+    @Override
+    public Option<Booking> findBookingById(String id) {
+        return Option.of(bookingRepository.findById(id).orElseThrow(()->));
+    }
+
+    @Override
+    public void deleteBookingById(String id) {
+
+
+    }
+
+    @Override
+    public Booking updateBooking(String id, BookingUpdates updates) {
+        return null;
+    }
+
+    @Override
+    public Booking save(BookingCreation creation) {
+        return null;
     }
 
 
