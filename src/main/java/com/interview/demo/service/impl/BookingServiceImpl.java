@@ -2,12 +2,12 @@ package com.interview.demo.service.impl;
 
 import com.interview.demo.entity.Room;
 import com.interview.demo.entity.User;
+import com.interview.demo.model.Booking.SearchBooking;
 import com.interview.demo.repository.BookingRepository;
 import com.interview.demo.entity.Booking;
 import com.interview.demo.repository.RoomRepository;
 import com.interview.demo.repository.UserRepository;
 import com.interview.demo.service.BookingService;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -98,21 +98,23 @@ public class BookingServiceImpl implements BookingService {
         Room bookingRoom = theBooking.getRoom();
         User bookingUser = theBooking.getUser();
 
-        if (bookingRoom != null && bookingRoom.getId() == 0 ) {
+        if (bookingRoom != null && bookingUser != null) {
 
-            Room savedRoom = roomRepository.save(bookingRoom);
-            theBooking.setRoom(savedRoom);
+//            Room savedRoom = roomRepository.save(bookingRoom);
+//            theBooking.setRoom(savedRoom);
+            return bookingRepository.save(theBooking);
         }
-        if (bookingUser != null && bookingUser.getId() == null) {
-
-            User savedUser = userRepository.save(bookingUser);
-            theBooking.setUser(savedUser);
-        }
-        return bookingRepository.save(theBooking);
+//        if (bookingUser != null) {
+//
+//
+//        }
+//        return bookingRepository.save(theBooking);
     }
 
-
-
+//    @Override
+//    public Optional<List<Booking>> searchAllBooking(String userId, SearchBooking body) {
+//        return bookingRepository.findByUserId(userId);
+//    }
 
 
 }

@@ -2,15 +2,20 @@ package com.interview.demo.contorller.admin;
 
 
 import com.interview.demo.entity.Booking;
+import com.interview.demo.model.Booking.BookingDto;
+import com.interview.demo.model.Booking.SearchBooking;
+import com.interview.demo.model.wrapper.RespWrapper;
 import com.interview.demo.service.BookingService;
 import com.interview.demo.service.RoomService;
 import com.interview.demo.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.catalina.connector.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 
 @RestController
@@ -33,6 +38,12 @@ public class BookingCtrl {
         List<Booking> theBooking = bookingService.findAllBookingByUserId(userId);
         return theBooking;
     }
+//    @Operation(summary = "個人訂單查詢")
+//    @GetMapping("/{userId}")
+//    public RespWrapper<List<BookingDto>> searchAllBooking(@PathVariable String userId) {
+//        List<BookingDto> theBooking = bookingService.findAllBookingByUserId(userId);
+//        return theBooking;
+//    }
 
 
     //查詢所有會議室訂單(完成)
@@ -54,6 +65,10 @@ public class BookingCtrl {
     @Operation(summary = "預定會議室")
     @PostMapping
     public Booking addBooking(@RequestBody Booking theBooking){
+
+        Booking dbBooking = bookingService.save(theBooking);
+        return dbBooking;
+
         //時間區間
 //        MeetingRoomScheduler scheduler = new MeetingRoomScheduler();
 //        List<TimeSlot> bookedTimeSlots = scheduler.getBookedTimeSlots();
@@ -85,8 +100,7 @@ public class BookingCtrl {
 //            throw new IllegalArgumentException("預定的時間與已預訂得時間區間重疊");
 //        }
 
-        Booking dbBooking = bookingService.save(theBooking);
-        return dbBooking;
+
     }
 
     //依指定BookingId更改會議室預定欄位(完成)
