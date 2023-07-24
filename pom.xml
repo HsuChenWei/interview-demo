@@ -14,6 +14,7 @@
 	<name>demo</name>
 	<description>Demo project for Spring Boot</description>
 	<properties>
+		<querydsl.version>4.1.4</querydsl.version>
 		<java.version>8</java.version>
 	</properties>
 	<dependencies>
@@ -87,6 +88,21 @@
 			<artifactId>modelmapper</artifactId>
 			<version>2.3.2</version>
 		</dependency>
+		<dependency>
+			<groupId>io.vavr</groupId>
+			<artifactId>vavr</artifactId>
+			<version>0.10.4</version>
+		</dependency>
+		<dependency>
+			<groupId>com.querydsl</groupId>
+			<artifactId>querydsl-apt</artifactId>
+			<version>${querydsl.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.querydsl</groupId>
+			<artifactId>querydsl-jpa</artifactId>
+			<version>${querydsl.version}</version>
+		</dependency>
 
 		<!--		<dependency>-->
 		<!--			<groupId>io.github.lmlx66</groupId>-->
@@ -109,6 +125,45 @@
 						</exclude>
 					</excludes>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.mysema.maven</groupId>
+				<artifactId>apt-maven-plugin</artifactId>
+				<version>1.1.3</version>
+				<executions>
+					<execution>
+						<id>querydsl-apt</id>
+						<goals>
+							<goal>process</goal>
+						</goals>
+						<phase>
+							generate-sources
+						</phase>
+						<configuration>
+							<includes>
+								<include>com/interview/demo/entity/**</include>
+							</includes>
+							<outputDirectory>target/generated-sources/querydsl</outputDirectory>
+							<processor>com.querydsl.apt.jpa.JPAAnnotationProcessor</processor>
+						</configuration>
+					</execution>
+					<execution>
+						<id>jpameta-apt</id>
+						<goals>
+							<goal>process</goal>
+						</goals>
+						<phase>
+							generate-sources
+						</phase>
+						<configuration>
+							<includes>
+								<include>com/interview/demo/entity/**</include>
+							</includes>
+							<outputDirectory>target/generated-sources/jpameta</outputDirectory>
+							<processor>org.hibernate.jpamodelgen.JPAMetaModelEntityProcessor</processor>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
