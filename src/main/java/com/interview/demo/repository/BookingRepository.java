@@ -14,15 +14,5 @@ import java.util.Optional;
 
 public interface BookingRepository extends JpaRepository<Booking, String> {
 
-//    @Query("SELECT b FROM Booking b WHERE b.userId = :user_id")
-    List<Booking> findByUserId(@Param("user_id") String userId);
-
-
-//    @Query("SELECT b FROM Booking b WHERE b.userId = :user_id")
-//    List<Booking> findAllBookingByUserId(@Param("user_id") String userId);
-//
-//
-//    @Query("SELECT b FROM Booking b WHERE b.id = :booking_id")
-//    Optional<Booking> findByBookingId(@Param("booking_id") String id);
 
 }

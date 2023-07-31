@@ -1,16 +1,20 @@
 package com.interview.demo.service;
 
+import com.interview.demo.entity.Booking;
 import com.interview.demo.entity.User;
+import com.interview.demo.model.User.UserCreate;
+import io.vavr.control.Option;
 
 import java.util.List;
-import java.util.Optional;
+
 
 public interface UserService {
 
-    User save(User theUser);
+    List<User> findAllUser();
 
-    List<User> findAll();
+    Option<User> getUserById(String id);
 
-    Optional<User> findById(String userId);
+    Option<User> createUser(UserCreate creation);
+
 
 }

@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/user-role")
+@RequestMapping("/api/role")
 @Tag(name = "User - Role", description = "會員角色")
 public class UserRoleCtrl {
 

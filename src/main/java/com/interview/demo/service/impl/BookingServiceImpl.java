@@ -3,6 +3,10 @@ package com.interview.demo.service.impl;
 
 import com.interview.demo.entity.Booking;
 import com.interview.demo.entity.QBooking;
+import com.interview.demo.error.ApiErrorCode;
+import com.interview.demo.error.BadRequestException;
+import com.interview.demo.model.Booking.BookingCreation;
+import com.interview.demo.model.Booking.BookingUpdates;
 import com.interview.demo.repository.BookingRepository;
 import com.interview.demo.repository.RoomRepository;
 import com.interview.demo.repository.UserRepository;
@@ -24,81 +28,65 @@ public class BookingServiceImpl implements BookingService {
     @Autowired
     private BookingRepository bookingRepository;
 
-    @Autowired
-    private RoomRepository roomRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Override//完成
+    @Override//查詢所有預定會議室訂單(完成)
     public List<Booking> findAllBooking() {
         return bookingRepository.findAll();
     }
 
-
-    @Override
-    public Option<Booking> findByUserId(String userId) {
-//        return bookingRepository.findByUserId(userId);
+    @Override//查詢個人所有會議室訂單(完成)
+    public Option<List<Booking>> getByUserId(String userId) {
         QBooking res = QBooking.booking;
         return Option.of(queryCtx.newQuery()
                 .selectFrom(res)
                 .where(res.userId.eq(userId))
+                .fetch());
+    }
+
+    @Override//查詢單一會議室訂單(完成)
+    public Option<Booking> getBookingById(String id) {
+        QBooking booking = QBooking.booking;
+        return Option.of(queryCtx.newQuery()
+                .selectFrom(booking)
+                .where(booking.id.eq(id))
                 .fetchOne());
     }
 
+    @Override//取消會議室訂單(完成)
+    public void removeBookingById(String id) {
+        Booking existed = getBookingById(id).getOrElseThrow(() -> new BadRequestException(ApiErrorCode.BOOKING_NOT_FOUND));
+        bookingRepository.delete(existed);
+    }
 
-//    @Override
-//    public List<Booking> findAllBookingByUserId(String userId) {
-//        return bookingRepository.findAllBookingByUserId(userId);
-//    }
+    @Override//會議室訂單更新(完成)
+    public Option<Booking> updateBooking(String id, BookingUpdates updates) {
+        Booking existed = getBookingById(id).getOrElseThrow(() -> new BadRequestException(ApiErrorCode.BOOKING_NOT_FOUND));
+        if(updates.getEndTime().before(updates.
+        getStartTime())){
+            throw new BadRequestException(ApiErrorCode.START_TIME_AFTER_END_TIME);
+        }
+        existed.setStartTime(updates.getStartTime());
+        existed.setEndTime(updates.getEndTime());
+        existed.setRoomId(updates.getRoomId());
+        return Option.of(bookingRepository.save(existed));
 
+    }
 
-//    @Override
-//    public Optional<Booking> findByBookingId(String id) {
-//        Optional<Booking> optionalBooking = bookingRepository.findByBookingId(bookingId);
-//
-//        if (!optionalBooking.isPresent()) {
-//            throw new RuntimeException("Can't find BookingId: " + bookingId);
-//        }
-//        return optionalBooking;
-//    }
-
-
-//    @Override
-//    public void deleteByUserId(String bookingId) {
-//        bookingRepository.deleteById(bookingId);
-//    }
-
-
-
-//    @Override
-//    public Booking updateBookingDetail(String bookingId, Booking theBooking) {
-//        Optional<Booking> optionalBooking = findByBookingId(bookingId);
-//
-//        if (optionalBooking.isPresent()) {
-//            Booking dbBooking = optionalBooking.get();
-//
-//            dbBooking.setRoomId(theBooking.getRoomId());
-//            dbBooking.setRoom(theBooking.getRoom());
-//            dbBooking.setEndTime(theBooking.getEndTime());
-//            dbBooking.setStartTime(theBooking.getStartTime());
-//
-//            return saveBooking(dbBooking);
-//        } else {
-//            throw new RuntimeException("Can't find BookingId: " + bookingId);
-//        }
-//    }
-
-//    private Booking saveBooking(Booking booking) {
-//        return bookingRepository.save(booking);
-//    }
+    //預定完會議室後，會員會被重複註冊(未完成)
+    @Override
+    public Option<Booking> createBooking(BookingCreation creation) {
+        Booking b = new Booking();
+        b.setUserId("1127959317338484736");//ID先寫死之後再改成使用者登入的動態寫法
+        b.setRoomId(creation.getRoomId());
+        b.setStartTime(creation.getStartTime());
+        b.setEndTime(creation.getEndTime());
+        if (b.getEndTime().before(b.getStartTime())) {
+            throw new BadRequestException(ApiErrorCode.START_TIME_AFTER_END_TIME);
+        }
+        return Option.of(bookingRepository.save(b));
+    }
 
 
-
-    //預定完會議室後，會員會被重複註冊(需修改)
-//    @Override
-//    public Booking save(Booking theBooking) {
-//        Room bookingRoom = theBooking.getRoom();
+    //        Room bookingRoom = theBooking.getRoom();
 //        User bookingUser = theBooking.getUser();
 //
 //        if (bookingRoom != null && bookingRoom.getId() == 0 ) {
@@ -112,12 +100,5 @@ public class BookingServiceImpl implements BookingService {
 //            theBooking.setUser(savedUser);
 //        }
 //        return bookingRepository.save(theBooking);
-//    }
-
-//    @Override
-//    public Optional<List<Booking>> searchAllBooking(String userId, SearchBooking body) {
-//        return bookingRepository.findByUserId(userId);
-//    }
-
 
 }

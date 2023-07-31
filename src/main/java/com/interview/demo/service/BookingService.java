@@ -1,40 +1,24 @@
 package com.interview.demo.service;
 
 import com.interview.demo.entity.Booking;
-import com.interview.demo.model.Booking.BookingDto;
-import com.interview.demo.model.Booking.SearchBooking;
+import com.interview.demo.model.Booking.BookingCreation;
+import com.interview.demo.model.Booking.BookingUpdates;
 import io.vavr.control.Option;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface BookingService {
 
-    List<Booking> findAllBooking();//完成
+    List<Booking> findAllBooking();//查詢所有預定會議室訂單(完成)
 
-//    List<Booking> findByUserId(String UserId);
+    Option<List<Booking>> getByUserId(String userId);//查詢個人所有會議室訂單(完成)
 
-    Option<Booking> findByUserId(String UserId);
+    Option<Booking> getBookingById(String id);//查詢單一會議室訂單(完成)
 
-//    Optional<Booking> findByBookingId(String bookingId);
-//
-//    List<Booking> findAllBookingByUserId(String userId);
-//
-//    void deleteByUserId(String bookingId);
-//
-//    Booking updateBookingDetail(String bookingId, Booking theBooking);
-//
-//    Booking save(Booking theBooking);
+    void removeBookingById(String id);//取消會議室訂單(完成)
 
+    Option<Booking> updateBooking(String id, BookingUpdates updates);//會議室訂單更新(完成)
 
-
-//    Optional<Booking> findBookingById(String id);
-//
-//    void deleteBookingById(String id);
-//
-//    Booking updateBooking(String id, BookingUpdates updates);
-//
-//    Booking save(BookingCreation creation);
-
+    Option<Booking> createBooking(BookingCreation creation);//會議室預定系統(未完成)
 
 }
