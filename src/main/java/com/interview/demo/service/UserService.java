@@ -1,6 +1,5 @@
 package com.interview.demo.service;
 
-import com.interview.demo.entity.Booking;
 import com.interview.demo.entity.User;
 import com.interview.demo.model.User.UserCreate;
 import io.vavr.control.Option;

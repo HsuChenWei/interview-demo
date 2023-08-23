@@ -10,7 +10,6 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 
-
 @Slf4j
 @SpringBootApplication
 @ComponentScan(basePackages = "com.interview.demo")
@@ -19,13 +18,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableTransactionManagement
 @EnableAsync
 public class DemoApplication {
-
 	public static void main(String[] args) {
 		SpringApplication.run(DemoApplication.class, args);
 		log.info("成功啟動");
 	}
-
-
-
-
 }

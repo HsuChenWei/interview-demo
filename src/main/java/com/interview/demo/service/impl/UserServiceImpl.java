@@ -1,12 +1,10 @@
 package com.interview.demo.service.impl;
 
-
-import com.interview.demo.entity.QBooking;
 import com.interview.demo.entity.QUser;
+import com.interview.demo.entity.User;
 import com.interview.demo.entity.UserRole;
 import com.interview.demo.model.User.UserCreate;
 import com.interview.demo.repository.UserRepository;
-import com.interview.demo.entity.User;
 import com.interview.demo.repository.UserRoleRepository;
 import com.interview.demo.repository.querydsl.QuerydslRepository;
 import com.interview.demo.service.UserService;
@@ -22,11 +20,13 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private QuerydslRepository queryCtx;
+
     @Autowired
     private UserRepository userRepository;
 
     @Autowired
     private UserRoleRepository userRoleRepository;
+
 
     @Override
     public List<User> findAllUser() {
@@ -42,6 +42,8 @@ public class UserServiceImpl implements UserService {
                 .fetchOne());
     }
 
+    // Todo: 缺少 @Transactional (可以去查看看什麼是資料庫的交易機制, 在程式端通常 CUD 必須在交易中.)
+    // Todo: 密碼加密
     @Override
     public Option<User> createUser(UserCreate creation) {
         User user = new User();

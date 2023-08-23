@@ -8,8 +8,6 @@ import com.interview.demo.error.BadRequestException;
 import com.interview.demo.model.Booking.BookingCreation;
 import com.interview.demo.model.Booking.BookingUpdates;
 import com.interview.demo.repository.BookingRepository;
-import com.interview.demo.repository.RoomRepository;
-import com.interview.demo.repository.UserRepository;
 import com.interview.demo.repository.querydsl.QuerydslRepository;
 import com.interview.demo.service.BookingService;
 import io.vavr.control.Option;
@@ -74,14 +72,25 @@ public class BookingServiceImpl implements BookingService {
     //預定完會議室後，會員會被重複註冊(未完成)
     @Override
     public Option<Booking> createBooking(BookingCreation creation) {
+
+        if (creation.getEndTime().before(creation.getStartTime())) {
+            throw new BadRequestException(ApiErrorCode.START_TIME_AFTER_END_TIME);
+        }
+
+        // Todo: 檢查是否有重複預定
+        // 1. get 會議室
+        // 2. get 會議室的預定 (今天以後)
+        // 3. 檢查要設定的時間是否有重疊 (2選1)
+        //    3.1 在程式上檢查
+        //    3.2 在資料庫上檢查 (寫 SQL)
+        // 4. 如果有重疊，拋出錯誤(EXCEPTION)
+
+        // SAVE
         Booking b = new Booking();
         b.setUserId("1127959317338484736");//ID先寫死之後再改成使用者登入的動態寫法
         b.setRoomId(creation.getRoomId());
         b.setStartTime(creation.getStartTime());
         b.setEndTime(creation.getEndTime());
-        if (b.getEndTime().before(b.getStartTime())) {
-            throw new BadRequestException(ApiErrorCode.START_TIME_AFTER_END_TIME);
-        }
         return Option.of(bookingRepository.save(b));
     }
 

@@ -8,8 +8,6 @@ import com.interview.demo.model.Booking.BookingDto;
 import com.interview.demo.model.Booking.BookingUpdates;
 import com.interview.demo.model.wrapper.RespWrapper;
 import com.interview.demo.service.BookingService;
-import com.interview.demo.service.RoomService;
-import com.interview.demo.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,18 +27,22 @@ public class BookingCtrl {
 
     @Autowired
     private BookingService bookingService;
-//    @Autowired
-//    private UserService userService;
-//    @Autowired
-//    private RoomService roomService;
+
     @Autowired
     private ModelMapper modelMapper;
 
 
+    // Todo: 補上分頁查詢 & 條件查詢
     //查詢所有會議室訂單(完成)
     @Operation(summary = "查詢所有會議室訂單")
     @GetMapping
-    public RespWrapper<List<BookingDto>> findAllBooking(){
+    public RespWrapper<List<BookingDto>> findAllBooking(
+            @RequestParam(defaultValue = "0") @Parameter(description = "分頁索引 (0-based)", required = true) int page,
+            @RequestParam(defaultValue = "50") @Parameter(description = "分頁大小", required = true) int size,
+            @RequestParam(required = false) @Parameter(description = "設定會議室ID") String roomId,
+            @RequestParam(required = false) @Parameter(description = "設定使用者ID") String userId,
+            @RequestParam(required = false) @Parameter(description = "設定訂單開始時間") String startTime,
+            @RequestParam(required = false) @Parameter(description = "設定訂單結束時間") String endTime) {
         return RespWrapper.success(bookingService.findAllBooking()
                 .stream()
                 .map(b -> modelMapper.map(b, BookingDto.class))
@@ -50,11 +52,11 @@ public class BookingCtrl {
     //查詢用戶個人所有會議室訂單(完成)
     @Operation(summary = "個人訂單查詢")
     @GetMapping("/user/{userId}")
-    public RespWrapper<List<BookingDto>> getByUserId(@PathVariable @Parameter(description = "設定使用者ID", required = true)String userId) {
+    public RespWrapper<List<BookingDto>> getByUserId(@PathVariable @Parameter(description = "設定使用者ID", required = true) String userId) {
         return bookingService.getByUserId(userId)
                 .map(bookingList -> bookingList.stream()
-                .map(booking -> modelMapper.map(booking, BookingDto.class))
-                .collect(Collectors.toList()))
+                        .map(booking -> modelMapper.map(booking, BookingDto.class))
+                        .collect(Collectors.toList()))
                 .map(RespWrapper::success)
                 .getOrElseThrow(() -> new BadRequestException(ApiErrorCode.BOOKING_NOT_FOUND));
     }
@@ -62,7 +64,7 @@ public class BookingCtrl {
     //查詢單一比預定訂單(完成)
     @Operation(summary = "單一訂單查詢")
     @GetMapping("/{id}")
-    public RespWrapper<BookingDto> getByBookingId(@PathVariable @Parameter(description = "設定訂單ID", required = true)String id) {
+    public RespWrapper<BookingDto> getByBookingId(@PathVariable @Parameter(description = "設定訂單ID", required = true) String id) {
         return bookingService.getBookingById(id)
                 .map(booking -> modelMapper.map(booking, BookingDto.class))
                 .map(RespWrapper::success)
@@ -73,7 +75,7 @@ public class BookingCtrl {
     //(CORSFilter/WebSecurityConfiguration權限)
     @Operation(summary = "取消會議室訂單")
     @DeleteMapping("/{id}")
-    public RespWrapper<Void> deleteBooking(@PathVariable @Parameter(description = "設定訂單ID", required = true)String id){
+    public RespWrapper<Void> deleteBooking(@PathVariable @Parameter(description = "設定訂單ID", required = true) String id) {
         bookingService.removeBookingById(id);
         return RespWrapper.success(null);
     }
@@ -81,7 +83,7 @@ public class BookingCtrl {
     //依指定BookingId更新會議室預定欄位(完成)
     @Operation(summary = "更改會議室")
     @PutMapping("/{id}")
-    public RespWrapper<BookingDto> updateBooking(@PathVariable @Parameter(description = "設定訂單ID", required = true)String id,@Validated @RequestBody BookingUpdates body) {
+    public RespWrapper<BookingDto> updateBooking(@PathVariable @Parameter(description = "設定訂單ID", required = true) String id, @Validated @RequestBody BookingUpdates body) {
         return bookingService.updateBooking(id, body)
                 .map(booking -> modelMapper.map(booking, BookingDto.class))
                 .map(RespWrapper::success)
@@ -129,7 +131,6 @@ public class BookingCtrl {
 //        if (isOverlapping) {
 //            throw new IllegalArgumentException("預定的時間與已預訂得時間區間重疊");
 //        }
-
 
 
 }

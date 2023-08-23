@@ -1,6 +1,5 @@
 package com.interview.demo.model.UserRole;
 
-import com.interview.demo.entity.User;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 

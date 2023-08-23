@@ -1,7 +1,6 @@
 package com.interview.demo.error;
 
 import lombok.Getter;
-import lombok.Data;
 import lombok.Setter;
 import org.springframework.http.HttpStatus;
 
