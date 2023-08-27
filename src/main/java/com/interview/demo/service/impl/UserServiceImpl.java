@@ -12,6 +12,7 @@ import io.vavr.control.Option;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.jdo.annotations.Transactional;
 import java.util.List;
 
 
@@ -45,6 +46,7 @@ public class UserServiceImpl implements UserService {
     // Todo: 缺少 @Transactional (可以去查看看什麼是資料庫的交易機制, 在程式端通常 CUD 必須在交易中.)
     // Todo: 密碼加密
     @Override
+    @Transactional
     public Option<User> createUser(UserCreate creation) {
         User user = new User();
         user.setUserPwd(creation.getUserPwd());

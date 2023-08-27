@@ -3,22 +3,32 @@ package com.interview.demo.service.impl;
 
 import com.interview.demo.entity.Booking;
 import com.interview.demo.entity.QBooking;
+import com.interview.demo.entity.Room;
 import com.interview.demo.error.ApiErrorCode;
 import com.interview.demo.error.BadRequestException;
 import com.interview.demo.model.Booking.BookingCreation;
 import com.interview.demo.model.Booking.BookingUpdates;
 import com.interview.demo.repository.BookingRepository;
+import com.interview.demo.repository.RoomRepository;
 import com.interview.demo.repository.querydsl.QuerydslRepository;
 import com.interview.demo.service.BookingService;
 import io.vavr.control.Option;
+import io.vavr.control.Try;
+import javassist.NotFoundException;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import javax.jdo.annotations.Transactional;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
 public class BookingServiceImpl implements BookingService {
-
 
     @Autowired
     private QuerydslRepository queryCtx;
@@ -26,10 +36,52 @@ public class BookingServiceImpl implements BookingService {
     @Autowired
     private BookingRepository bookingRepository;
 
+    @Autowired
+    private RoomRepository roomRepository;
+
+    @Autowired
+    private ModelMapper modelMapper;
+
     @Override//查詢所有預定會議室訂單(完成)
     public List<Booking> findAllBooking() {
         return bookingRepository.findAll();
     }
+
+
+    @Override
+    public List<Booking> findFilteredBookings(int page, int size, String roomId, String userId, String startTime, String endTime) {
+        Specification<Booking> spec = Specification.where(null);
+
+        if (roomId != null) {
+            spec = spec.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.equal(root.get("roomId"), roomId)
+            );
+        }
+
+        if (userId != null) {
+            spec = spec.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.equal(root.get("userId"), userId)
+            );
+        }
+
+        if (startTime != null) {
+            spec = spec.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.greaterThanOrEqualTo(root.get("startTime"), startTime)
+            );
+        }
+
+        if (endTime != null) {
+            spec = spec.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.lessThanOrEqualTo(root.get("endTime"), endTime)
+            );
+        }
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Booking> bookingsPage = bookingRepository.findAll(spec, pageable);
+
+        return bookingsPage.getContent();
+    }
+
 
     @Override//查詢個人所有會議室訂單(完成)
     public Option<List<Booking>> getByUserId(String userId) {
@@ -50,12 +102,14 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override//取消會議室訂單(完成)
+    @Transactional
     public void removeBookingById(String id) {
         Booking existed = getBookingById(id).getOrElseThrow(() -> new BadRequestException(ApiErrorCode.BOOKING_NOT_FOUND));
         bookingRepository.delete(existed);
     }
 
     @Override//會議室訂單更新(完成)
+    @Transactional
     public Option<Booking> updateBooking(String id, BookingUpdates updates) {
         Booking existed = getBookingById(id).getOrElseThrow(() -> new BadRequestException(ApiErrorCode.BOOKING_NOT_FOUND));
         if(updates.getEndTime().before(updates.
@@ -71,19 +125,31 @@ public class BookingServiceImpl implements BookingService {
 
     //預定完會議室後，會員會被重複註冊(未完成)
     @Override
-    public Option<Booking> createBooking(BookingCreation creation) {
+    @Transactional
+    public Option<Booking> createBooking(BookingCreation creation) throws NotFoundException {
 
         if (creation.getEndTime().before(creation.getStartTime())) {
             throw new BadRequestException(ApiErrorCode.START_TIME_AFTER_END_TIME);
         }
 
-        // Todo: 檢查是否有重複預定
-        // 1. get 會議室
-        // 2. get 會議室的預定 (今天以後)
-        // 3. 檢查要設定的時間是否有重疊 (2選1)
-        //    3.1 在程式上檢查
-        //    3.2 在資料庫上檢查 (寫 SQL)
-        // 4. 如果有重疊，拋出錯誤(EXCEPTION)
+        // get 會議室
+        Room room = roomRepository.findById(creation.getRoomId())
+                .orElseThrow(() -> new NotFoundException("Room not found"));
+
+        // get 會議室的預定 (今天以後)
+        List<Booking> existingBookings = bookingRepository.findByRoomIdAndStartTimeAfter(
+                room.getId(), LocalDate.now().atStartOfDay());
+
+        // 檢查要設定的時間是否有重疊
+        boolean isOverlap = existingBookings.stream()
+                .anyMatch(existingBooking ->
+                        (creation.getStartTime().before(existingBooking.getEndTime()) &&
+                                creation.getEndTime().after(existingBooking.getStartTime())));
+
+        //如果有重疊，拋出錯誤(EXCEPTION)
+        if (isOverlap) {
+            throw new RuntimeException("Booking time overlaps with existing bookings");
+        }
 
         // SAVE
         Booking b = new Booking();
@@ -92,6 +158,15 @@ public class BookingServiceImpl implements BookingService {
         b.setStartTime(creation.getStartTime());
         b.setEndTime(creation.getEndTime());
         return Option.of(bookingRepository.save(b));
+    }
+
+    @Override
+    public Option<Booking> getRoomId(String roomId) {
+        QBooking booking = QBooking.booking;
+        return Option.of(queryCtx.newQuery()
+                .selectFrom(booking)
+                .where(booking.roomId.eq(Integer.valueOf(roomId)))
+                .fetchOne());
     }
 
 

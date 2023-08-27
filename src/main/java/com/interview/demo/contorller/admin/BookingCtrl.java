@@ -1,6 +1,7 @@
 package com.interview.demo.contorller.admin;
 
 
+import com.interview.demo.entity.Booking;
 import com.interview.demo.error.ApiErrorCode;
 import com.interview.demo.error.BadRequestException;
 import com.interview.demo.model.Booking.BookingCreation;
@@ -11,8 +12,10 @@ import com.interview.demo.service.BookingService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import javassist.NotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,14 +39,15 @@ public class BookingCtrl {
     //查詢所有會議室訂單(完成)
     @Operation(summary = "查詢所有會議室訂單")
     @GetMapping
-    public RespWrapper<List<BookingDto>> findAllBooking(
+    public RespWrapper<List<BookingDto>> findFilteredBookings(
             @RequestParam(defaultValue = "0") @Parameter(description = "分頁索引 (0-based)", required = true) int page,
-            @RequestParam(defaultValue = "50") @Parameter(description = "分頁大小", required = true) int size,
+            @RequestParam(defaultValue = "20") @Parameter(description = "分頁大小", required = true) int size,
             @RequestParam(required = false) @Parameter(description = "設定會議室ID") String roomId,
             @RequestParam(required = false) @Parameter(description = "設定使用者ID") String userId,
             @RequestParam(required = false) @Parameter(description = "設定訂單開始時間") String startTime,
             @RequestParam(required = false) @Parameter(description = "設定訂單結束時間") String endTime) {
-        return RespWrapper.success(bookingService.findAllBooking()
+        List<Booking> filteredBookings = bookingService.findFilteredBookings(page, size, roomId, userId, startTime, endTime);
+        return RespWrapper.success(bookingService.findFilteredBookings(page, size, roomId, userId, startTime, endTime)
                 .stream()
                 .map(b -> modelMapper.map(b, BookingDto.class))
                 .collect(Collectors.toList()));
@@ -93,7 +97,7 @@ public class BookingCtrl {
     //預定會議室(未完成)
     @Operation(summary = "預定會議室")
     @PostMapping("/{userId}")
-    public RespWrapper<BookingDto> createBooking(@RequestBody BookingCreation body) {
+    public RespWrapper<BookingDto> createBooking(@RequestBody BookingCreation body) throws NotFoundException {
         return bookingService.createBooking(body)
                 .flatMap(f -> bookingService.getBookingById(f.getId()))
                 .map(booking -> modelMapper.map(booking, BookingDto.class))

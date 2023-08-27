@@ -2,8 +2,10 @@ package com.interview.demo.service;
 
 import com.interview.demo.entity.Booking;
 import com.interview.demo.model.Booking.BookingCreation;
+import com.interview.demo.model.Booking.BookingDto;
 import com.interview.demo.model.Booking.BookingUpdates;
 import io.vavr.control.Option;
+import javassist.NotFoundException;
 
 import java.util.List;
 
@@ -19,6 +21,9 @@ public interface BookingService {
 
     Option<Booking> updateBooking(String id, BookingUpdates updates);//會議室訂單更新(完成)
 
-    Option<Booking> createBooking(BookingCreation creation);//會議室預定系統(未完成)
+    Option<Booking> createBooking(BookingCreation creation) throws NotFoundException;//會議室預定系統(未完成)
 
+    Option<Booking> getRoomId(String roomId);
+
+    List<Booking> findFilteredBookings(int page, int size, String roomId, String userId, String startTime, String endTime);
 }
