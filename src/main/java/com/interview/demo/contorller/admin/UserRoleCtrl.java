@@ -32,8 +32,7 @@ public class UserRoleCtrl {
 
             dbUserRole.setUserType(theRoleId.getUserType());
 
-            UserRole saveUserRole = userRoleService.save(dbUserRole);
-            return saveUserRole;
+            return userRoleService.save(dbUserRole);
         } else {
             throw new RuntimeException("Can't found UserId：" + roleId);
         }

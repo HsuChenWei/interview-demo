@@ -21,7 +21,6 @@ public interface BookingRepository extends JpaRepository<Booking, String> {
 
     List<Booking> findByRoomIdAndStartTimeAfter(int id, LocalDateTime atStartOfDay);
 
-    List<Booking> findByRoomId(String roomId);
 
 //    @Query(value = "", nativeQuery = true)
 //    Page<Booking> findBookings(Pageable pageable,@Param("roomId") String roomId);

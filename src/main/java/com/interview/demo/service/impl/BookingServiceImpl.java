@@ -48,7 +48,8 @@ public class BookingServiceImpl implements BookingService {
     }
 
 
-    @Override
+
+    @Override//分頁查詢
     public List<Booking> findFilteredBookings(int page, int size, String roomId, String userId, String startTime, String endTime) {
         Specification<Booking> spec = Specification.where(null);
 
@@ -57,19 +58,16 @@ public class BookingServiceImpl implements BookingService {
                     criteriaBuilder.equal(root.get("roomId"), roomId)
             );
         }
-
         if (userId != null) {
             spec = spec.and((root, query, criteriaBuilder) ->
                     criteriaBuilder.equal(root.get("userId"), userId)
             );
         }
-
         if (startTime != null) {
             spec = spec.and((root, query, criteriaBuilder) ->
                     criteriaBuilder.greaterThanOrEqualTo(root.get("startTime"), startTime)
             );
         }
-
         if (endTime != null) {
             spec = spec.and((root, query, criteriaBuilder) ->
                     criteriaBuilder.lessThanOrEqualTo(root.get("endTime"), endTime)
@@ -128,10 +126,6 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public Option<Booking> createBooking(BookingCreation creation) throws NotFoundException {
 
-        if (creation.getEndTime().before(creation.getStartTime())) {
-            throw new BadRequestException(ApiErrorCode.START_TIME_AFTER_END_TIME);
-        }
-
         // get 會議室
         Room room = roomRepository.findById(creation.getRoomId())
                 .orElseThrow(() -> new NotFoundException("Room not found"));
@@ -149,6 +143,11 @@ public class BookingServiceImpl implements BookingService {
         //如果有重疊，拋出錯誤(EXCEPTION)
         if (isOverlap) {
             throw new RuntimeException("Booking time overlaps with existing bookings");
+        }
+
+        //判斷結束時間是否早於開始時間
+        if (creation.getEndTime().before(creation.getStartTime())) {
+            throw new BadRequestException(ApiErrorCode.START_TIME_AFTER_END_TIME);
         }
 
         // SAVE

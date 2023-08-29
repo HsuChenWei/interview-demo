@@ -1,9 +1,11 @@
 package com.interview.demo.contorller.admin;
 
+import com.interview.demo.entity.User;
 import com.interview.demo.error.ApiErrorCode;
 import com.interview.demo.error.BadRequestException;
 import com.interview.demo.model.User.UserCreate;
 import com.interview.demo.model.User.UserDto;
+import com.interview.demo.model.User.UserLogin;
 import com.interview.demo.model.wrapper.RespWrapper;
 import com.interview.demo.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,6 +15,8 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import io.vavr.control.Option;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,8 +36,16 @@ public class UserCtrl {
     // Todo: Login API? (PS. 先解決密碼加密問題, 然後在寫 Login)
     /** NOTE: 先用簡單的方式實作, 實作完後再改成 JWT 加上 Spring Security.*/
 
+    @Operation(summary = "會員登入")
+    @PostMapping("/login")
+    public RespWrapper<UserDto> userLogin(@RequestBody UserLogin body) {
+        Option<User> userOption = userService.userLogin(body);
 
-    // Todo: 補上分頁查詢
+        return userOption
+                .map(user -> RespWrapper.success(modelMapper.map(user, UserDto.class)))
+                .getOrElseThrow(() -> new BadRequestException(ApiErrorCode.USER_NOT_FOUND));
+    }
+
     //查詢所有會員資料(完成)
     @Operation(summary = "查詢所有會員資料")
     @GetMapping
@@ -56,13 +68,15 @@ public class UserCtrl {
 
     // Todo: 註冊時要檢查帳號是否重複.
     @Operation(summary = "會員註冊")
-    @PostMapping
+    @PostMapping("/register")
     public RespWrapper<UserDto> register(@Validated @RequestBody UserCreate body) {
         return userService.createUser(body)
                 .map(u -> modelMapper.map(u, UserDto.class))
                 .map(RespWrapper::success)
                 .get();
     }
+
+
 
     // Todo: 確認角色權限修改是否整合在這.
     /**
