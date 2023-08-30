@@ -25,5 +25,5 @@ public interface BookingService {
 
     Option<Booking> getRoomId(String roomId);
 
-    List<Booking> findFilteredBookings(int page, int size, String roomId, String userId, String startTime, String endTime);
+    List<Booking> findFilteredBookings(int page, int size, String roomId, String userId, String startTime, String endTime, String id);
 }

@@ -41,12 +41,13 @@ public class BookingCtrl {
     public RespWrapper<List<BookingDto>> findFilteredBookings(
             @RequestParam(defaultValue = "0") @Parameter(description = "分頁索引 (0-based)", required = true) int page,
             @RequestParam(defaultValue = "20") @Parameter(description = "分頁大小", required = true) int size,
+            @RequestParam(required = false) @Parameter(description = "設定訂單ID") String id,
             @RequestParam(required = false) @Parameter(description = "設定會議室ID") String roomId,
             @RequestParam(required = false) @Parameter(description = "設定使用者ID") String userId,
             @RequestParam(required = false) @Parameter(description = "設定訂單開始時間") String startTime,
             @RequestParam(required = false) @Parameter(description = "設定訂單結束時間") String endTime) {
-        List<Booking> filteredBookings = bookingService.findFilteredBookings(page, size, roomId, userId, startTime, endTime);
-        return RespWrapper.success(bookingService.findFilteredBookings(page, size, roomId, userId, startTime, endTime)
+        List<Booking> filteredBookings = bookingService.findFilteredBookings(page, size, roomId, userId, startTime, endTime, id);
+        return RespWrapper.success(bookingService.findFilteredBookings(page, size, roomId, userId, startTime, endTime, id)
                 .stream()
                 .map(b -> modelMapper.map(b, BookingDto.class))
                 .collect(Collectors.toList()));

@@ -43,7 +43,7 @@ public class UserCtrl {
 
         return userOption
                 .map(user -> RespWrapper.success(modelMapper.map(user, UserDto.class)))
-                .getOrElseThrow(() -> new BadRequestException(ApiErrorCode.USER_NOT_FOUND));
+                .getOrElseThrow(() -> new BadRequestException(ApiErrorCode.USERNAME_OR_PASSWORD_ERROR));
     }
 
     //查詢所有會員資料(完成)

@@ -25,5 +25,6 @@ public class User {
     @Column(name = "user_pwd")
     private String userPwd;
 
+
 }
 

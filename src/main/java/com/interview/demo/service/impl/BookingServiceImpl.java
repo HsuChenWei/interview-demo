@@ -50,9 +50,14 @@ public class BookingServiceImpl implements BookingService {
 
 
     @Override//分頁查詢
-    public List<Booking> findFilteredBookings(int page, int size, String roomId, String userId, String startTime, String endTime) {
+    public List<Booking> findFilteredBookings(int page, int size, String roomId, String userId, String startTime, String endTime, String id) {
         Specification<Booking> spec = Specification.where(null);
 
+        if (id != null) {
+            spec = spec.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.equal(root.get("id"), id)
+            );
+        }
         if (roomId != null) {
             spec = spec.and((root, query, criteriaBuilder) ->
                     criteriaBuilder.equal(root.get("roomId"), roomId)

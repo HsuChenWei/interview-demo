@@ -5,7 +5,6 @@ import com.interview.demo.entity.User;
 import com.interview.demo.entity.UserRole;
 import com.interview.demo.error.ApiErrorCode;
 import com.interview.demo.error.BadRequestException;
-import com.interview.demo.error.ForbiddenRequestException;
 import com.interview.demo.model.User.UserCreate;
 import com.interview.demo.model.User.UserLogin;
 import com.interview.demo.repository.UserRepository;
@@ -14,9 +13,9 @@ import com.interview.demo.repository.querydsl.QuerydslRepository;
 import com.interview.demo.service.UserService;
 import io.vavr.control.Option;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.DisabledException;
-import org.springframework.security.authentication.LockedException;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.jdo.annotations.Transactional;
@@ -34,6 +33,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserRoleRepository userRoleRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
 
     @Override
@@ -61,6 +63,7 @@ public class UserServiceImpl implements UserService {
     }
 
     // Todo: 密碼加密
+    //註冊
     @Override
     @Transactional
     public Option<User> createUser(UserCreate creation) {
@@ -72,10 +75,14 @@ public class UserServiceImpl implements UserService {
         if (userRepository.existsByUserPwd(creation.getUserPwd())) {
             throw new BadRequestException(ApiErrorCode.PASSWORD_EXISTED);
         }
+
+        //密碼加密
+        String encryptedPassword = passwordEncoder.encode(creation.getUserPwd());
+
         //創建帳號
         User user = new User();
         user.setUserName(creation.getUserName());
-        user.setUserPwd(creation.getUserPwd());
+        user.setUserPwd(encryptedPassword);
         User res = userRepository.save(user);
         UserRole userRole = new UserRole();//同時新增使用者角色
         userRole.setId(res.getId());
@@ -87,23 +94,50 @@ public class UserServiceImpl implements UserService {
     //會員登入
     @Override
     public Option<User> userLogin(UserLogin body) {
-        try {
-            Option<User> userOption = getUserByName(body.getUserName());
-            if (userOption.isDefined()) {
-                User user = userOption.get();
-                if (user.getUserPwd().equals(body.getUserPwd())) {
-                    return Option.of(user);
-                }
+
+        Option<User> userOption = getUserByName(body.getUserName());
+        if (userOption.isDefined()) {
+            User user = userOption.get();
+            if (checkPassword(body, user)) {
+                return Option.of(user);
             }
-        } catch (DisabledException ex) {
-            throw new ForbiddenRequestException(ApiErrorCode.USER_DISABLED, ex);
-        } catch (LockedException ex) {
-            throw new ForbiddenRequestException(ApiErrorCode.USER_LOCKED, ex);
-        } catch (BadCredentialsException ex) {
-            throw new ForbiddenRequestException(ApiErrorCode.BAD_CREDENTIAL, ex);
         }
+
         return Option.none();
     }
+
+    public boolean checkPassword(UserLogin user, User dbUser) {
+
+        String inputPassword = user.getUserPwd();
+        return passwordEncoder.matches(inputPassword, dbUser.getUserPwd());
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User userEntity = userRepository.getUserByUserName(username);
+        if (userEntity == null) {
+            throw new UsernameNotFoundException("User not found with username: " + username);
+        }
+
+        // Fetch UserRole using userId
+        UserRole userRole = userRoleRepository.findById(userEntity.getId()).orElse(null);
+        if (userRole == null) {
+            throw new UsernameNotFoundException("User role not found for user with username: " + username);
+        }
+
+        return new CustomUserDetails(userEntity.getUserName(), userEntity.getUserPwd(), String.valueOf(userRole.getUserType()));
+    }
+
+//    @Override
+//    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+//        User user = userRepository.getUserByName(username);
+//        if (user == null) {
+//            throw new UsernameNotFoundException("User not found: " + username);
+//        }
+//
+//        // Assuming you have a User class that implements UserDetails
+//        return (UserDetails) user;
+//    }
 
 
 //    @Override
