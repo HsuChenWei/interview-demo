@@ -33,9 +33,8 @@ public class UserCtrl {
     private ModelMapper modelMapper;
 
 
-    // Todo: Login API? (PS. 先解決密碼加密問題, 然後在寫 Login)
     /** NOTE: 先用簡單的方式實作, 實作完後再改成 JWT 加上 Spring Security.*/
-
+    //會員登入(完成)
     @Operation(summary = "會員登入")
     @PostMapping("/login")
     public RespWrapper<UserDto> userLogin(@RequestBody UserLogin body) {
@@ -66,7 +65,7 @@ public class UserCtrl {
                 .getOrElseThrow(() -> new BadRequestException(ApiErrorCode.USER_NOT_FOUND));
     }
 
-    // Todo: 註冊時要檢查帳號是否重複.
+    // Todo: 註冊時要檢查帳號是否重複.(完成)
     @Operation(summary = "會員註冊")
     @PostMapping("/register")
     public RespWrapper<UserDto> register(@Validated @RequestBody UserCreate body) {

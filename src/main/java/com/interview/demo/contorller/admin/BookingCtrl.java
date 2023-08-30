@@ -33,8 +33,6 @@ public class BookingCtrl {
     @Autowired
     private ModelMapper modelMapper;
 
-
-    // Todo: 補上分頁查詢 & 條件查詢
     //查詢所有會議室訂單(完成)
     @Operation(summary = "查詢所有會議室訂單")
     @GetMapping
@@ -104,37 +102,5 @@ public class BookingCtrl {
                 .map(RespWrapper::success)
                 .get();
     }
-
-    //時間區間
-//        MeetingRoomScheduler scheduler = new MeetingRoomScheduler();
-//        List<TimeSlot> bookedTimeSlots = scheduler.getBookedTimeSlots();
-//        // 检查预定时间是否与已预订的时间段重叠
-//        Timestamp startTime = theBooking.getStartTime();
-//        Timestamp endTime = theBooking.getEndTime();
-//        LocalTime startTimeOnly = startTime.toLocalDateTime().toLocalTime();
-//        LocalTime endTimeOnly = endTime.toLocalDateTime().toLocalTime();
-//
-//        LocalTime openTime = LocalTime.of(9, 0);
-//        LocalTime closeTime = LocalTime.of(18, 0);
-//
-//        if (startTimeOnly.isBefore(openTime) || endTimeOnly.isAfter(closeTime)) {
-//
-//            throw new IllegalArgumentException("預定時間不在開放的時間時段");
-//        }
-//
-//        boolean isOverlapping = false;
-//        for (TimeSlot bookedSlot : bookedTimeSlots) {
-//            LocalTime bookedStartTime = bookedSlot.getStartTime();
-//            LocalTime bookedEndTime = bookedSlot.getEndTime();
-//            if (isTimeOverlapping(startTimeOnly, endTimeOnly, bookedStartTime, bookedEndTime)) {
-//                isOverlapping = true;
-//                break;
-//            }
-//        }
-//
-//        if (isOverlapping) {
-//            throw new IllegalArgumentException("預定的時間與已預訂得時間區間重疊");
-//        }
-
 
 }

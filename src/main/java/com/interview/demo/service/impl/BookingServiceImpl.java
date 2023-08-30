@@ -13,7 +13,6 @@ import com.interview.demo.repository.RoomRepository;
 import com.interview.demo.repository.querydsl.QuerydslRepository;
 import com.interview.demo.service.BookingService;
 import io.vavr.control.Option;
-import io.vavr.control.Try;
 import javassist.NotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,6 +80,7 @@ public class BookingServiceImpl implements BookingService {
 
         Pageable pageable = PageRequest.of(page, size);
         Page<Booking> bookingsPage = bookingRepository.findAll(spec, pageable);
+        bookingRepository.count();
 
         return bookingsPage.getContent();
     }
@@ -172,21 +172,5 @@ public class BookingServiceImpl implements BookingService {
                 .where(booking.roomId.eq(Integer.valueOf(roomId)))
                 .fetchOne());
     }
-
-
-    //        Room bookingRoom = theBooking.getRoom();
-//        User bookingUser = theBooking.getUser();
-//
-//        if (bookingRoom != null && bookingRoom.getId() == 0 ) {
-//
-//            Room savedRoom = roomRepository.save(bookingRoom);
-//            theBooking.setRoom(savedRoom);
-//        }
-//        if (bookingUser != null && bookingUser.getId() == null) {
-//
-//            User savedUser = userRepository.save(bookingUser);
-//            theBooking.setUser(savedUser);
-//        }
-//        return bookingRepository.save(theBooking);
 
 }

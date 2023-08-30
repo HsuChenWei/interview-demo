@@ -13,8 +13,6 @@ import com.interview.demo.repository.querydsl.QuerydslRepository;
 import com.interview.demo.service.UserService;
 import io.vavr.control.Option;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -62,7 +60,6 @@ public class UserServiceImpl implements UserService {
                 .fetchOne());
     }
 
-    // Todo: 密碼加密
     //註冊
     @Override
     @Transactional
@@ -98,6 +95,7 @@ public class UserServiceImpl implements UserService {
         Option<User> userOption = getUserByName(body.getUserName());
         if (userOption.isDefined()) {
             User user = userOption.get();
+            //調用檢查DB的加密密碼方法
             if (checkPassword(body, user)) {
                 return Option.of(user);
             }
@@ -106,60 +104,13 @@ public class UserServiceImpl implements UserService {
         return Option.none();
     }
 
+    //檢查DB的加密密碼
     public boolean checkPassword(UserLogin user, User dbUser) {
 
         String inputPassword = user.getUserPwd();
         return passwordEncoder.matches(inputPassword, dbUser.getUserPwd());
     }
 
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User userEntity = userRepository.getUserByUserName(username);
-        if (userEntity == null) {
-            throw new UsernameNotFoundException("User not found with username: " + username);
-        }
-
-        // Fetch UserRole using userId
-        UserRole userRole = userRoleRepository.findById(userEntity.getId()).orElse(null);
-        if (userRole == null) {
-            throw new UsernameNotFoundException("User role not found for user with username: " + username);
-        }
-
-        return new CustomUserDetails(userEntity.getUserName(), userEntity.getUserPwd(), String.valueOf(userRole.getUserType()));
-    }
-
-//    @Override
-//    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-//        User user = userRepository.getUserByName(username);
-//        if (user == null) {
-//            throw new UsernameNotFoundException("User not found: " + username);
-//        }
-//
-//        // Assuming you have a User class that implements UserDetails
-//        return (UserDetails) user;
-//    }
-
-
-//    @Override
-//    public Option<User> getById(@Param("user_id") String id) {
-//        Option<User> theUser = userRepository.findById(id);
-//        if (theUser == null){
-//            throw  new RuntimeException("Can't find the userID:"+ id);
-//        }
-//        Optional<User> optionalUser = userRepository.findById(id);
-//        if (optionalUser.isPresent()) {
-//            User dbUser = optionalUser.get();
-//
-//            dbUser.setUserName(theUser.get().getUserName());
-//            dbUser.setUserPwd(theUser.get().getUserPwd());
-//
-//            User saveUser = userRepository.save(dbUser);
-//            return Option.of(saveUser);
-//        } else {
-//            throw new RuntimeException("Can't find UserId: " + id);
-//        }
-//
-//    }
 
 
 }
