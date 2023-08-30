@@ -33,7 +33,7 @@ public class BookingCtrl {
     @Autowired
     private ModelMapper modelMapper;
 
-    //查詢所有會議室訂單(完成)
+    //查詢所有會議室訂單(需要改成抓會員ID個別顯示自己的訂單)
     @Operation(summary = "查詢所有會議室訂單")
     @GetMapping
     public RespWrapper<List<BookingDto>> findFilteredBookings(

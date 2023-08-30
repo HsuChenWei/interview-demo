@@ -23,7 +23,9 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import javax.jdo.annotations.Transactional;
+import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -136,8 +138,9 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new NotFoundException("Room not found"));
 
         // get 會議室的預定 (今天以後)
+        LocalDateTime todayStart = LocalDate.now().atStartOfDay();
         List<Booking> existingBookings = bookingRepository.findByRoomIdAndStartTimeAfter(
-                room.getId(), LocalDate.now().atStartOfDay());
+                room.getId(), Timestamp.valueOf(todayStart));
 
         // 檢查要設定的時間是否有重疊
         boolean isOverlap = existingBookings.stream()
@@ -150,6 +153,11 @@ public class BookingServiceImpl implements BookingService {
             throw new RuntimeException("Booking time overlaps with existing bookings");
         }
 
+        //判斷開始時間是否在今天之前的日期
+        if (creation.getStartTime().toLocalDateTime().isBefore(todayStart)) {
+            throw new BadRequestException(ApiErrorCode.START_DATE_BEFORE_TODAY);
+        }
+
         //判斷結束時間是否早於開始時間
         if (creation.getEndTime().before(creation.getStartTime())) {
             throw new BadRequestException(ApiErrorCode.START_TIME_AFTER_END_TIME);
@@ -157,7 +165,7 @@ public class BookingServiceImpl implements BookingService {
 
         // SAVE
         Booking b = new Booking();
-        b.setUserId("1127959317338484736");//ID先寫死之後再改成使用者登入的動態寫法
+        b.setUserId("1146355968951365632");//ID先寫死之後再改成使用者登入的動態寫法
         b.setRoomId(creation.getRoomId());
         b.setStartTime(creation.getStartTime());
         b.setEndTime(creation.getEndTime());
