@@ -21,3 +21,8 @@ wfg:
 #    hibernate:
 #      ddl-auto: update
 #    show-sql: true
+jwt:
+  header: Authorization
+  iss: interview.demo
+  aud: interview.demo
+  secret: ${JWT_SECRET}

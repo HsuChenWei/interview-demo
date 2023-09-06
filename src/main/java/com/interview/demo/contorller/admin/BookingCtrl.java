@@ -92,7 +92,7 @@ public class BookingCtrl {
                 .getOrElseThrow(() -> new BadRequestException(ApiErrorCode.BOOKING_NOT_FOUND));
     }
 
-    //預定會議室(未完成)
+    //預定會議室(差登入後接受jwt預定會議室)
     @Operation(summary = "預定會議室")
     @PostMapping("/{userId}")
     public RespWrapper<BookingDto> createBooking(@RequestBody BookingCreation body) throws NotFoundException {

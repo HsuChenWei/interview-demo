@@ -5,12 +5,14 @@ import com.interview.demo.entity.User;
 import com.interview.demo.entity.UserRole;
 import com.interview.demo.error.ApiErrorCode;
 import com.interview.demo.error.BadRequestException;
+import com.interview.demo.model.TokenPair;
 import com.interview.demo.model.User.UserCreate;
 import com.interview.demo.model.User.UserLogin;
 import com.interview.demo.repository.UserRepository;
 import com.interview.demo.repository.UserRoleRepository;
 import com.interview.demo.repository.querydsl.QuerydslRepository;
 import com.interview.demo.service.UserService;
+import com.interview.demo.service.utils.UtilService;
 import io.vavr.control.Option;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -34,6 +36,10 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+
+    @Autowired
+    private UtilService utilService;
 
 
     @Override
@@ -65,17 +71,12 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public Option<User> createUser(UserCreate creation) {
 
-        //檢查帳號密碼是否被重複創建
+        //檢查帳號是否被重複創建
         if (userRepository.existsByUserName(creation.getUserName())) {
             throw new BadRequestException(ApiErrorCode.USER_EXISTED);
         }
-        if (userRepository.existsByUserPwd(creation.getUserPwd())) {
-            throw new BadRequestException(ApiErrorCode.PASSWORD_EXISTED);
-        }
-
         //密碼加密
         String encryptedPassword = passwordEncoder.encode(creation.getUserPwd());
-
         //創建帳號
         User user = new User();
         user.setUserName(creation.getUserName());
@@ -90,27 +91,25 @@ public class UserServiceImpl implements UserService {
 
     //會員登入
     @Override
-    public Option<User> userLogin(UserLogin body) {
-
+    public Option<TokenPair> userLogin(UserLogin body) {
         Option<User> userOption = getUserByName(body.getUserName());
         if (userOption.isDefined()) {
             User user = userOption.get();
             //調用檢查DB的加密密碼方法
             if (checkPassword(body, user)) {
-                return Option.of(user);
+                return utilService.generateTokenPair(user.getId());
+            }else {
+                throw new BadRequestException(ApiErrorCode.USER_NOT_FOUND);
             }
         }
-
         return Option.none();
     }
 
     //檢查DB的加密密碼
     public boolean checkPassword(UserLogin user, User dbUser) {
-
         String inputPassword = user.getUserPwd();
         return passwordEncoder.matches(inputPassword, dbUser.getUserPwd());
     }
-
 
 
 }

@@ -13,11 +13,16 @@ public class UserRole {
     @Column(name = "role_id")
     private String id;
 
+
     @Column(name = "user_type")
     private int userType;
 
     @ManyToOne
     @JoinColumn(name = "role_id", referencedColumnName = "user_id", insertable = false, updatable = false)
     private User user;
+
+
+
+
 
 }

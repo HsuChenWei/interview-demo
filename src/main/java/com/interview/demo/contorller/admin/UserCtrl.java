@@ -1,8 +1,8 @@
 package com.interview.demo.contorller.admin;
 
-import com.interview.demo.entity.User;
 import com.interview.demo.error.ApiErrorCode;
 import com.interview.demo.error.BadRequestException;
+import com.interview.demo.model.TokenPair;
 import com.interview.demo.model.User.UserCreate;
 import com.interview.demo.model.User.UserDto;
 import com.interview.demo.model.User.UserLogin;
@@ -11,12 +11,11 @@ import com.interview.demo.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.vavr.control.Option;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import io.vavr.control.Option;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,17 +32,18 @@ public class UserCtrl {
     private ModelMapper modelMapper;
 
 
-    /** NOTE: 先用簡單的方式實作, 實作完後再改成 JWT 加上 Spring Security.*/
+
     //會員登入(完成)
     @Operation(summary = "會員登入")
     @PostMapping("/login")
-    public RespWrapper<UserDto> userLogin(@RequestBody UserLogin body) {
-        Option<User> userOption = userService.userLogin(body);
+    public RespWrapper<TokenPair> userLogin(@RequestBody UserLogin body) {
+        Option<TokenPair> userOption = userService.userLogin(body);
 
         return userOption
-                .map(user -> RespWrapper.success(modelMapper.map(user, UserDto.class)))
+                .map(user -> RespWrapper.success(modelMapper.map(user, TokenPair.class)))
                 .getOrElseThrow(() -> new BadRequestException(ApiErrorCode.USERNAME_OR_PASSWORD_ERROR));
     }
+
 
     //查詢所有會員資料(完成)
     @Operation(summary = "查詢所有會員資料")
@@ -65,7 +65,6 @@ public class UserCtrl {
                 .getOrElseThrow(() -> new BadRequestException(ApiErrorCode.USER_NOT_FOUND));
     }
 
-    // Todo: 註冊時要檢查帳號是否重複.(完成)
     @Operation(summary = "會員註冊")
     @PostMapping("/register")
     public RespWrapper<UserDto> register(@Validated @RequestBody UserCreate body) {

@@ -1,6 +1,7 @@
 package com.interview.demo.service;
 
 import com.interview.demo.entity.User;
+import com.interview.demo.model.TokenPair;
 import com.interview.demo.model.User.UserCreate;
 import com.interview.demo.model.User.UserLogin;
 import io.vavr.control.Option;
@@ -19,6 +20,6 @@ public interface UserService {
 
     Option<User> createUser(UserCreate creation);
 
-    Option<User> userLogin(UserLogin body);
+    Option<TokenPair> userLogin(UserLogin body);
 
 }
