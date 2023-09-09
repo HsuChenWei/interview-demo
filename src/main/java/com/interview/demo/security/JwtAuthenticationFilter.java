@@ -12,6 +12,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -49,6 +51,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                 authToken = authToken.substring(BEARER_PREFIX.length()).trim();
                 DecodedJWT jwt = jwtHelper.verify(authToken);
                 String userId = jwt.getClaim("sid").asString();
+                int userType = jwt.getClaim("userType").asInt();
 
                 Date accessExpiredAtDate = jwt.getExpiresAt(); // 获取过期时间的Date对象
                 Instant accessExpiredAtInstant = accessExpiredAtDate.toInstant(); // 转换为Instant
@@ -61,29 +64,10 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                         .map(s -> {
                             UserPasswordAuthenticationToken authentication = new UserPasswordAuthenticationToken(s.getId(), null, Collections.emptyList());
                             authentication.setDetails(userId);
+                            authentication.getAuthorities().add(new SimpleGrantedAuthority("ROLE_" + (userType == 0 ? "USER" : "ADMIN")));
                             return (Authentication) authentication;
 
                         })
-//                        .flatMap(s -> {
-////                            if (s.getUserId() != null) {
-//                                return userService.getById(jwt.getSubject())
-//                                        .map(User::getId)
-//                                        .map(userId -> {
-//                                            UserPasswordAuthenticationToken authentication = new UserPasswordAuthenticationToken(s.getUserId(), null, Collections.emptyList());
-//                                            authentication.setDetails(sessionId);
-//                                            return (Authentication) authentication;
-//                                        });
-////                            } else if (s.getMemberId() != null) {
-////                                return memberService.getMemberById(jwt.getSubject())
-////                                        .map(Member::getId)
-////                                        .map(memberId -> {
-////                                            MemberPasswordAuthenticationToken authentication = new MemberPasswordAuthenticationToken(s.getMemberId(), null, Collections.emptyList());
-////                                            authentication.setDetails(sessionId);
-////                                            return (Authentication) authentication;
-////                                        });
-////                            }
-//                            return Option.none();
-//                        })
                         .forEach(authentication -> {
                             SecurityContextHolder.getContext().setAuthentication(authentication);
                         });

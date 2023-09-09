@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import io.vavr.control.Option;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,9 +45,19 @@ public class UserCtrl {
                 .getOrElseThrow(() -> new BadRequestException(ApiErrorCode.USERNAME_OR_PASSWORD_ERROR));
     }
 
+    @Operation(summary = "會員註冊")
+    @PostMapping("/register")
+    public RespWrapper<UserDto> register(@Validated @RequestBody UserCreate body) {
+        return userService.createUser(body)
+                .map(u -> modelMapper.map(u, UserDto.class))
+                .map(RespWrapper::success)
+                .get();
+    }
+
 
     //查詢所有會員資料(完成)
     @Operation(summary = "查詢所有會員資料")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public RespWrapper<List<UserDto>> findAllUser(){
         return RespWrapper.success(userService.findAllUser()
@@ -65,14 +76,7 @@ public class UserCtrl {
                 .getOrElseThrow(() -> new BadRequestException(ApiErrorCode.USER_NOT_FOUND));
     }
 
-    @Operation(summary = "會員註冊")
-    @PostMapping("/register")
-    public RespWrapper<UserDto> register(@Validated @RequestBody UserCreate body) {
-        return userService.createUser(body)
-                .map(u -> modelMapper.map(u, UserDto.class))
-                .map(RespWrapper::success)
-                .get();
-    }
+
 
 
 

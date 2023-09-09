@@ -21,8 +21,6 @@ public class UserRole {
     @JoinColumn(name = "role_id", referencedColumnName = "user_id", insertable = false, updatable = false)
     private User user;
 
-
-
-
-
 }
+
+

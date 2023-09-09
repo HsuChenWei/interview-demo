@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import javassist.NotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,6 +36,7 @@ public class BookingCtrl {
 
     //查詢所有會議室訂單(需要改成抓會員ID個別顯示自己的訂單)
     @Operation(summary = "查詢所有會議室訂單")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public RespWrapper<List<BookingDto>> findFilteredBookings(
             @RequestParam(defaultValue = "0") @Parameter(description = "分頁索引 (0-based)", required = true) int page,
@@ -65,6 +67,7 @@ public class BookingCtrl {
 
     //查詢單一比預定訂單(完成)
     @Operation(summary = "單一訂單查詢")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
     public RespWrapper<BookingDto> getByBookingId(@PathVariable @Parameter(description = "設定訂單ID", required = true) String id) {
         return bookingService.getBookingById(id)
