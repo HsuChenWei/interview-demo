@@ -24,20 +24,6 @@ public class UserRoleServiceImpl implements UserRoleService {
 
     @Override
     public Optional<UserRole> findByRoleId(String theRoleId) {
-//        Optional<UserRole> optionalUserRole = userRoleService.findByRoleId(theRoleId);
-
-        //getUserType會報錯應該是db是int，這裡只能用string(db可能要改Varchar)
-//        if (optionalUserRole.isPresent()) {
-//            UserRole dbUserRole = optionalUserRole.get();
-//
-//            dbUserRole.setUserType(theRoleId.getUserType);
-//
-//            UserRole saveUserRole = userRoleService.save(dbUserRole);
-//            return Optional.of(saveUserRole);
-//        } else {
-//            throw new RuntimeException("Can't find UserId: " + theRoleId);
-//        }
-
         return userRoleRepository.findByRoleId(theRoleId);
     }
 }

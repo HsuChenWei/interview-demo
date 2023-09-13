@@ -10,7 +10,7 @@ import javax.persistence.*;
 @Data
 @Entity
 @Table(name = "user")
-public class User  {
+public class User {
 
     @Id
     @GeneratedValue(generator = "idGenerator")
@@ -24,8 +24,6 @@ public class User  {
 
     @Column(name = "user_pwd")
     private String userPwd;
-
-
 
 }
 

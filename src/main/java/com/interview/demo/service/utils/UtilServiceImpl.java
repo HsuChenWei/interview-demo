@@ -1,7 +1,7 @@
 package com.interview.demo.service.utils;
 
 
-import com.interview.demo.model.TokenPair;
+import com.interview.demo.model.Security.TokenPair;
 import com.interview.demo.service.UserService;
 import com.interview.demo.service.impl.jwt.JwtHelper;
 import io.vavr.control.Option;
@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -27,12 +28,16 @@ public class UtilServiceImpl implements UtilService {
         return userService.getUserById(id)
                 .map(s -> {
 
+                    List<String> userRoles = userService.getRoleTypeByUserId(s.getId());
+                    String userType = userRoles.get(0);
+
                     LocalDateTime currentDateTime = LocalDateTime.now();
                     LocalDateTime accessExpiredAt = currentDateTime.plus(2, ChronoUnit.HOURS);
 
                     Map<String, String> accessClaims = new HashMap<>();
                     accessClaims.put("typ", "Bearer");
                     accessClaims.put("sid", s.getId());
+                    accessClaims.put("userType", userType);
                     String accessToken = jwtHelper.sign(s.getId(), accessExpiredAt, accessClaims);
 
                     Map<String, String> refreshClaims = new HashMap<>();

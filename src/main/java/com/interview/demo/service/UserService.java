@@ -1,7 +1,7 @@
 package com.interview.demo.service;
 
 import com.interview.demo.entity.User;
-import com.interview.demo.model.TokenPair;
+import com.interview.demo.model.Security.TokenPair;
 import com.interview.demo.model.User.UserCreate;
 import com.interview.demo.model.User.UserLogin;
 import io.vavr.control.Option;
@@ -17,9 +17,9 @@ public interface UserService {
 
     Option<User> getUserByName(String userName);
 
-
     Option<User> createUser(UserCreate creation);
 
     Option<TokenPair> userLogin(UserLogin body);
 
+    List<String> getRoleTypeByUserId(String userId);
 }

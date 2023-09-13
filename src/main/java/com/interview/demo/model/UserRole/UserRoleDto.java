@@ -8,6 +8,6 @@ import lombok.Data;
 public class UserRoleDto {
 
     @Schema(description = "角色")
-    private int userType;
+    private String userType;
 
 }

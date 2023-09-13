@@ -20,6 +20,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.jdo.annotations.Transactional;
@@ -97,6 +99,28 @@ public class BookingServiceImpl implements BookingService {
                 .fetch());
     }
 
+    //登入後取得個人資料(完成)
+    @Override
+    public Option<List<Booking>> getMySelfBookingByUserId(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return Option.none();
+        }
+        String currentUsername = authentication.getName();
+
+        QBooking booking = QBooking.booking;
+        List<Booking> bookings = queryCtx.newQuery()
+                .selectFrom(booking)
+                .where(booking.userId.eq(currentUsername))
+                .fetch();
+
+        if (!bookings.isEmpty()) {
+            return Option.of(bookings);
+        } else {
+            return Option.none();
+        }
+    }
+
+
     @Override//查詢單一會議室訂單(完成)
     public Option<Booking> getBookingById(String id) {
         QBooking booking = QBooking.booking;
@@ -128,48 +152,56 @@ public class BookingServiceImpl implements BookingService {
 
     }
 
-    //預定完會議室後，會員會被重複註冊(未完成)
+    //預定完會議室後，會員會被重複註冊(完成)
     @Override
     @Transactional
     public Option<Booking> createBooking(BookingCreation creation) throws NotFoundException {
 
-        // get 會議室
-        Room room = roomRepository.findById(creation.getRoomId())
-                .orElseThrow(() -> new NotFoundException("Room not found"));
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        // get 會議室的預定 (今天以後)
-        LocalDateTime todayStart = LocalDate.now().atStartOfDay();
-        List<Booking> existingBookings = bookingRepository.findByRoomIdAndStartTimeAfter(
-                room.getId(), Timestamp.valueOf(todayStart));
+        if (authentication != null && authentication.isAuthenticated()) {
 
-        // 檢查要設定的時間是否有重疊
-        boolean isOverlap = existingBookings.stream()
-                .anyMatch(existingBooking ->
-                        (creation.getStartTime().before(existingBooking.getEndTime()) &&
-                                creation.getEndTime().after(existingBooking.getStartTime())));
+            String userId = authentication.getName();
+            // get 會議室
+            Room room = roomRepository.findById(creation.getRoomId())
+                    .orElseThrow(() -> new NotFoundException("Room not found"));
 
-        //如果有重疊，拋出錯誤(EXCEPTION)
-        if (isOverlap) {
-            throw new RuntimeException("Booking time overlaps with existing bookings");
+            // get 會議室的預定 (今天以後)
+            LocalDateTime todayStart = LocalDate.now().atStartOfDay();
+            List<Booking> existingBookings = bookingRepository.findByRoomIdAndStartTimeAfter(
+                    room.getId(), Timestamp.valueOf(todayStart));
+
+            // 檢查要設定的時間是否有重疊
+            boolean isOverlap = existingBookings.stream()
+                    .anyMatch(existingBooking ->
+                            (creation.getStartTime().before(existingBooking.getEndTime()) &&
+                                    creation.getEndTime().after(existingBooking.getStartTime())));
+
+            //如果有重疊，拋出錯誤(EXCEPTION)
+            if (isOverlap) {
+                throw new RuntimeException("Booking time overlaps with existing bookings");
+            }
+
+            //判斷開始時間是否在今天之前的日期
+            if (creation.getStartTime().toLocalDateTime().isBefore(todayStart)) {
+                throw new BadRequestException(ApiErrorCode.START_DATE_BEFORE_TODAY);
+            }
+
+            //判斷結束時間是否早於開始時間
+            if (creation.getEndTime().before(creation.getStartTime())) {
+                throw new BadRequestException(ApiErrorCode.START_TIME_AFTER_END_TIME);
+            }
+
+            // SAVE
+            Booking b = new Booking();
+            b.setUserId(userId);
+            b.setRoomId(creation.getRoomId());
+            b.setStartTime(creation.getStartTime());
+            b.setEndTime(creation.getEndTime());
+            return Option.of(bookingRepository.save(b));
+        }else {
+            throw new BadRequestException(ApiErrorCode.USER_IS_NOT_AUTHENTICATED);
         }
-
-        //判斷開始時間是否在今天之前的日期
-        if (creation.getStartTime().toLocalDateTime().isBefore(todayStart)) {
-            throw new BadRequestException(ApiErrorCode.START_DATE_BEFORE_TODAY);
-        }
-
-        //判斷結束時間是否早於開始時間
-        if (creation.getEndTime().before(creation.getStartTime())) {
-            throw new BadRequestException(ApiErrorCode.START_TIME_AFTER_END_TIME);
-        }
-
-        // SAVE
-        Booking b = new Booking();
-        b.setUserId("1146355968951365632");//ID先寫死之後再改成使用者登入的動態寫法
-        b.setRoomId(creation.getRoomId());
-        b.setStartTime(creation.getStartTime());
-        b.setEndTime(creation.getEndTime());
-        return Option.of(bookingRepository.save(b));
     }
 
     @Override

@@ -1,4 +1,4 @@
-package com.interview.demo.model;
+package com.interview.demo.model.Security;
 
 
 import io.swagger.v3.oas.annotations.media.Schema;

@@ -1,4 +1,4 @@
-package com.interview.demo.contorller.admin;
+package com.interview.demo.controller.admin;
 
 
 import com.interview.demo.entity.Booking;
@@ -24,8 +24,8 @@ import java.util.stream.Collectors;
 
 
 @RestController
-@RequestMapping("/api/booking")
-@Tag(name = "Booking", description = "訂單功能")
+@RequestMapping("/api/admin/booking")
+@Tag(name = "Admin - Booking", description = "訂單功能")
 public class BookingCtrl {
 
     @Autowired
@@ -55,6 +55,7 @@ public class BookingCtrl {
 
     //查詢用戶個人所有會議室訂單(完成)
     @Operation(summary = "個人訂單查詢")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/user/{userId}")
     public RespWrapper<List<BookingDto>> getByUserId(@PathVariable @Parameter(description = "設定使用者ID", required = true) String userId) {
         return bookingService.getByUserId(userId)
@@ -77,8 +78,8 @@ public class BookingCtrl {
     }
 
     //取消會議室訂單(完成)
-    //(CORSFilter/WebSecurityConfiguration權限)
     @Operation(summary = "取消會議室訂單")
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public RespWrapper<Void> deleteBooking(@PathVariable @Parameter(description = "設定訂單ID", required = true) String id) {
         bookingService.removeBookingById(id);
@@ -87,6 +88,7 @@ public class BookingCtrl {
 
     //依指定BookingId更新會議室預定欄位(完成)
     @Operation(summary = "更改會議室")
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public RespWrapper<BookingDto> updateBooking(@PathVariable @Parameter(description = "設定訂單ID", required = true) String id, @Validated @RequestBody BookingUpdates body) {
         return bookingService.updateBooking(id, body)
@@ -95,8 +97,9 @@ public class BookingCtrl {
                 .getOrElseThrow(() -> new BadRequestException(ApiErrorCode.BOOKING_NOT_FOUND));
     }
 
-    //預定會議室(差登入後接受jwt預定會議室)
+    //預定會議室(差登入後接收jwt預定會議室)
     @Operation(summary = "預定會議室")
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{userId}")
     public RespWrapper<BookingDto> createBooking(@RequestBody BookingCreation body) throws NotFoundException {
         return bookingService.createBooking(body)

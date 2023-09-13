@@ -1,8 +1,8 @@
-package com.interview.demo.contorller.admin;
+package com.interview.demo.controller.admin;
 
 import com.interview.demo.error.ApiErrorCode;
 import com.interview.demo.error.BadRequestException;
-import com.interview.demo.model.TokenPair;
+import com.interview.demo.model.Security.TokenPair;
 import com.interview.demo.model.User.UserCreate;
 import com.interview.demo.model.User.UserDto;
 import com.interview.demo.model.User.UserLogin;
@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/user")
-@Tag(name = "User", description = "會員功能")
+@RequestMapping("/api/admin/user")
+@Tag(name = "Admin - User", description = "會員功能")
 public class UserCtrl {
 
     @Autowired
@@ -36,6 +36,7 @@ public class UserCtrl {
 
     //會員登入(完成)
     @Operation(summary = "會員登入")
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/login")
     public RespWrapper<TokenPair> userLogin(@RequestBody UserLogin body) {
         Option<TokenPair> userOption = userService.userLogin(body);
@@ -46,6 +47,7 @@ public class UserCtrl {
     }
 
     @Operation(summary = "會員註冊")
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/register")
     public RespWrapper<UserDto> register(@Validated @RequestBody UserCreate body) {
         return userService.createUser(body)
@@ -68,6 +70,7 @@ public class UserCtrl {
 
     //查詢單一會員資料(完成)
     @Operation(summary = "查詢單一會員資料")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
     public RespWrapper<UserDto> findUserById(@PathVariable @Parameter(description = "設定會員 ID", required = true) String id){
         return userService.getUserById(id)

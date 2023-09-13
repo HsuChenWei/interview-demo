@@ -29,12 +29,10 @@ public class Booking {
     private int roomId;
 
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
-//    @JsonProperty
     @Column(name = "start_time")
     private Timestamp startTime;
 
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
-//    @JsonProperty
     @Column(name = "end_time")
     private Timestamp endTime;
 

@@ -15,11 +15,6 @@ public interface BookingRepository extends JpaRepository<Booking, String> {
 
     Page<Booking> findAll(Specification<Booking> spec, Pageable pageable);
 
-//    List<Booking> findByRoomIdAndStartTimeAfter(int id, LocalDateTime atStartOfDay);
-
     List<Booking> findByRoomIdAndStartTimeAfter(int id, Date todayStartTimestamp);
 
-
-//    @Query(value = "", nativeQuery = true)
-//    Page<Booking> findBookings(Pageable pageable,@Param("roomId") String roomId);
 }

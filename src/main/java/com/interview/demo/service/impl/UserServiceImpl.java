@@ -5,7 +5,7 @@ import com.interview.demo.entity.User;
 import com.interview.demo.entity.UserRole;
 import com.interview.demo.error.ApiErrorCode;
 import com.interview.demo.error.BadRequestException;
-import com.interview.demo.model.TokenPair;
+import com.interview.demo.model.Security.TokenPair;
 import com.interview.demo.model.User.UserCreate;
 import com.interview.demo.model.User.UserLogin;
 import com.interview.demo.repository.UserRepository;
@@ -19,7 +19,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.jdo.annotations.Transactional;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 
 @Service
@@ -37,9 +39,11 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-
     @Autowired
     private UtilService utilService;
+
+    @Autowired
+    private UserService userService;
 
 
     @Override
@@ -56,15 +60,6 @@ public class UserServiceImpl implements UserService {
                 .fetchOne());
     }
 
-    //取得會員帳號
-    @Override
-    public Option<User> getUserByName(String userName) {
-        QUser username = QUser.user;
-        return Option.of(queryCtx.newQuery()
-                .selectFrom(username)
-                .where(username.userName.eq(userName))
-                .fetchOne());
-    }
 
     //註冊
     @Override
@@ -89,14 +84,26 @@ public class UserServiceImpl implements UserService {
         return Option.of(res);
     }
 
+    //取得會員帳號
+    @Override
+    public Option<User> getUserByName(String userName) {
+        QUser username = QUser.user;
+        return Option.of(queryCtx.newQuery()
+                .selectFrom(username)
+                .where(username.userName.eq(userName))
+                .fetchOne());
+    }
+
     //會員登入
     @Override
     public Option<TokenPair> userLogin(UserLogin body) {
+        //取得帳號前台輸入帳號
         Option<User> userOption = getUserByName(body.getUserName());
         if (userOption.isDefined()) {
             User user = userOption.get();
             //調用檢查DB的加密密碼方法
             if (checkPassword(body, user)) {
+                //回傳accessToken
                 return utilService.generateTokenPair(user.getId());
             }else {
                 throw new BadRequestException(ApiErrorCode.USER_NOT_FOUND);
@@ -104,6 +111,18 @@ public class UserServiceImpl implements UserService {
         }
         return Option.none();
     }
+
+    public List<String> getRoleTypeByUserId(String userId) {
+        Optional<User> userOptional = userService.getUserById(userId).toJavaOptional();
+        if (userOptional.isPresent()) {
+            String roleType = userRoleRepository.findRoleTypeByUserId(userId);
+
+            return Collections.singletonList(roleType);
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
 
     //檢查DB的加密密碼
     public boolean checkPassword(UserLogin user, User dbUser) {
