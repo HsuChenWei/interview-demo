@@ -7,6 +7,7 @@ import com.interview.demo.error.ApiErrorCode;
 import com.interview.demo.error.BadRequestException;
 import com.interview.demo.model.Security.TokenPair;
 import com.interview.demo.model.User.UserCreate;
+import com.interview.demo.model.User.UserList;
 import com.interview.demo.model.User.UserLogin;
 import com.interview.demo.repository.UserRepository;
 import com.interview.demo.repository.UserRoleRepository;
@@ -19,9 +20,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.jdo.annotations.Transactional;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static com.interview.demo.entity.QUser.user;
 
 
 @Service
@@ -46,9 +48,32 @@ public class UserServiceImpl implements UserService {
     private UserService userService;
 
 
+
     @Override
     public List<User> findAllUser() {
         return userRepository.findAll();
+    }
+    @Override
+    public List<UserList> getAllUserWithRole() {
+        List<User> users = userRepository.findAll();
+        List<UserRole> userRoles = userRoleRepository.findAll();
+
+        Map<String, Integer> userIdToUserTypeMap = new HashMap<>();
+        for (UserRole userRole : userRoles) {
+            if (userRole.getUser() != null) {
+                userIdToUserTypeMap.put(userRole.getUser().getId(), userRole.getUserType());
+            }
+        }
+
+        List<UserList> userDTOs = users.stream().map(user -> {
+            UserList dto = new UserList();
+            dto.setId(user.getId());
+            dto.setUserName(user.getUserName());
+            dto.setUserType(userIdToUserTypeMap.getOrDefault(user.getId(), null));
+            return dto;
+        }).collect(Collectors.toList());
+
+        return userDTOs;
     }
 
     @Override
@@ -60,6 +85,21 @@ public class UserServiceImpl implements UserService {
                 .fetchOne());
     }
 
+    @Override
+    public Option<UserList> getUserByIdWithRole(String id) {
+        User user = userRepository.findById(id).orElse(null);
+        if (user != null) {
+            UserRole userRole = userRoleRepository.findById(id).orElse(null);
+            UserList userDetail = new UserList();
+            userDetail.setId(user.getId());
+            userDetail.setUserName(user.getUserName());
+            if (userRole != null) {
+                userDetail.setUserType(userRole.getUserType());
+            }
+            return Option.of(userDetail);
+        }
+        return Option.none();
+    }
 
     //註冊
     @Override
@@ -70,15 +110,20 @@ public class UserServiceImpl implements UserService {
         if (userRepository.existsByUserName(creation.getUserName())) {
             throw new BadRequestException(ApiErrorCode.USER_EXISTED);
         }
-        //密碼加密
-        String encryptedPassword = passwordEncoder.encode(creation.getUserPwd());
+
         //創建帳號
         User user = new User();
+
         user.setUserName(creation.getUserName());
+
+        //密碼加密
+        String encryptedPassword = passwordEncoder.encode(creation.getUserPwd());
         user.setUserPwd(encryptedPassword);
+
         User res = userRepository.save(user);
-        UserRole userRole = new UserRole();//同時新增使用者角色
-        userRole.setId(res.getId());
+        //同時新增使用者角色
+        UserRole userRole = new UserRole();
+        userRole.setId(res.getId());//設定與userId相同的roleId
         userRole.setUserType(0);//初始設定值為0(一般用戶)
         userRoleRepository.save(userRole);
         return Option.of(res);
@@ -87,7 +132,7 @@ public class UserServiceImpl implements UserService {
     //取得會員帳號
     @Override
     public Option<User> getUserByName(String userName) {
-        QUser username = QUser.user;
+        QUser username = user;
         return Option.of(queryCtx.newQuery()
                 .selectFrom(username)
                 .where(username.userName.eq(userName))
@@ -122,7 +167,6 @@ public class UserServiceImpl implements UserService {
             return Collections.emptyList();
         }
     }
-
 
     //檢查DB的加密密碼
     public boolean checkPassword(UserLogin user, User dbUser) {

@@ -13,11 +13,16 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import io.vavr.control.Option;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/api/member/user")
@@ -52,30 +57,18 @@ public class MemberUserCtrl {
                 .get();
     }
 
+    @Operation(summary = "會員登出")
+    @PostMapping("/logout")
+    public ResponseEntity<String> Logout(HttpServletRequest request) {
 
-//    //查詢所有會員資料(完成)
-//    @Operation(summary = "查詢所有會員資料")
-//    @PreAuthorize("hasRole('ADMIN')")
-//    @GetMapping("/v1")
-//    public RespWrapper<List<UserDto>> findAllUser(){
-//        return RespWrapper.success(userService.findAllUser()
-//                .stream()
-//                .map(u -> modelMapper.map(u, UserDto.class))
-//                .collect(Collectors.toList()));
-//    }
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-//    //查詢單一會員資料(完成)
-//    @Operation(summary = "查詢單一會員資料")
-//    @GetMapping("/v1/{id}")
-//    public RespWrapper<UserDto> findUserById(@PathVariable @Parameter(description = "設定會員 ID", required = true) String id){
-//        return userService.getUserById(id)
-//                .map(user -> modelMapper.map(user, UserDto.class))
-//                .map(RespWrapper::success)
-//                .getOrElseThrow(() -> new BadRequestException(ApiErrorCode.USER_NOT_FOUND));
-//    }
-
-
-
+        if (authentication != null && authentication.isAuthenticated()) {
+            authentication.setAuthenticated(false);
+        }
+//        request.getSession().invalidate();
+        return ResponseEntity.ok("Logged out successfully");
+    }
 
 
     // Todo: 確認角色權限修改是否整合在這.
@@ -86,26 +79,5 @@ public class MemberUserCtrl {
      *
      * (PS: keyword: RESTful API, @RequestBody, @RequestParam, @PathVariable)
      */
-
-    //依會員帳號更改會員內容(完成)
-//    @Operation(summary = "更新會員資料")
-//    @PutMapping("/{userId}")
-//    public User updateUserDetail(@PathVariable String userId, @RequestBody User theUser){
-//        Optional<User> getUser = userService.findById(userId, theUser);
-//        Optional<User> optionalUser = userService.findById(userId);
-//        if (optionalUser.isPresent()) {
-//            User dbUser = optionalUser.get();
-//
-//            dbUser.setUserName(theUser.getUserName());
-//            dbUser.setUserPwd(theUser.getUserPwd());
-//
-//            User saveUser = userService.save(dbUser);
-//            return saveUser;
-//        } else {
-//            throw new RuntimeException("Can't found UserId：" + userId);
-//        }
-//        return theUser;
-//    }
-
 
 }

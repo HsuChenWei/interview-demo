@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,8 +30,10 @@ public class UtilServiceImpl implements UtilService {
                     List<String> userRoles = userService.getRoleTypeByUserId(s.getId());
                     String userType = userRoles.get(0);
 
+                    //創建當下的時間
                     LocalDateTime currentDateTime = LocalDateTime.now();
-                    LocalDateTime accessExpiredAt = currentDateTime.plus(2, ChronoUnit.HOURS);
+                    //token有效時間(2hr)
+                    LocalDateTime accessExpiredAt = currentDateTime.plusHours(2);
 
                     Map<String, String> accessClaims = new HashMap<>();
                     accessClaims.put("typ", "Bearer");

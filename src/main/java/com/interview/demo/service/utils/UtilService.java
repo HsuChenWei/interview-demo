@@ -5,7 +5,5 @@ import io.vavr.control.Option;
 
 public interface UtilService {
 
-
-
     Option<TokenPair> generateTokenPair(String id);
 }

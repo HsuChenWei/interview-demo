@@ -8,6 +8,7 @@ import com.interview.demo.model.Booking.BookingCreation;
 import com.interview.demo.model.Booking.BookingDto;
 import com.interview.demo.model.Booking.BookingUpdates;
 import com.interview.demo.model.wrapper.RespWrapper;
+import com.interview.demo.repository.RoomRepository;
 import com.interview.demo.service.BookingService;
 import com.interview.demo.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,11 +18,13 @@ import io.vavr.control.Option;
 import javassist.NotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
@@ -36,47 +39,22 @@ public class MemberBookingCtrl {
     @Autowired
     private ModelMapper modelMapper;
 
+    @Autowired
+    private RoomRepository roomRepository;
+
 
     @Autowired
     private UserService userService;
 
-    //查詢所有會議室訂單(需要改成抓會員ID個別顯示自己的訂單)
-//    @Operation(summary = "查詢所有會議室訂單")
-//    @PreAuthorize("hasRole('ADMIN')")
-//    @GetMapping
-//    public RespWrapper<List<BookingDto>> findFilteredBookings(
-//            @RequestParam(defaultValue = "0") @Parameter(description = "分頁索引 (0-based)", required = true) int page,
-//            @RequestParam(defaultValue = "20") @Parameter(description = "分頁大小", required = true) int size,
-//            @RequestParam(required = false) @Parameter(description = "設定訂單ID") String id,
-//            @RequestParam(required = false) @Parameter(description = "設定會議室ID") String roomId,
-//            @RequestParam(required = false) @Parameter(description = "設定使用者ID") String userId,
-//            @RequestParam(required = false) @Parameter(description = "設定訂單開始時間") String startTime,
-//            @RequestParam(required = false) @Parameter(description = "設定訂單結束時間") String endTime) {
-//        List<Booking> filteredBookings = bookingService.findFilteredBookings(page, size, roomId, userId, startTime, endTime, id);
-//        return RespWrapper.success(bookingService.findFilteredBookings(page, size, roomId, userId, startTime, endTime, id)
-//                .stream()
-//                .map(b -> modelMapper.map(b, BookingDto.class))
-//                .collect(Collectors.toList()));
-//    }
-
-    //查詢用戶個人所有會議室訂單(完成)
-//    @Operation(summary = "個人訂單查詢")
-//    @GetMapping("/user/{userId}")
-//    public RespWrapper<List<BookingDto>> getByUserId(@PathVariable @Parameter(description = "設定使用者ID", required = true) String userId) {
-//        return bookingService.getByUserId(userId)
-//                .map(bookingList -> bookingList.stream()
-//                        .map(booking -> modelMapper.map(booking, BookingDto.class))
-//                        .collect(Collectors.toList()))
-//                .map(RespWrapper::success)
-//                .getOrElseThrow(() -> new BadRequestException(ApiErrorCode.BOOKING_NOT_FOUND));
-//    }
-
-    //登入後列出個人的訂單(完成)
+    //    登入後列出個人的訂單(完成)
+    @Operation(summary = "列出個人訂單")
     @GetMapping("/user")
-    public RespWrapper<List<BookingDto>> getMySelfBookings(Authentication authentication) {
-        Option<List<Booking>> bookingsOption = bookingService.getMySelfBookingByUserId(authentication);
+    public RespWrapper<List<BookingDto>> getOwnBookings(Authentication authentication) {
+        Option<List<Booking>> bookingsOption = bookingService.getOwnBookingByUserId(authentication);
         if (bookingsOption.isDefined()) {
+            //取得當下會員資料庫訂單
             List<Booking> bookings = bookingsOption.get();
+            //資料庫輸出轉成BookingDto欄位輸出前台
             List<BookingDto> bookingDtos = bookings.stream()
                     .map(booking -> modelMapper.map(booking, BookingDto.class))
                     .collect(Collectors.toList());
@@ -98,7 +76,7 @@ public class MemberBookingCtrl {
 
     //取消會議室訂單(完成)
     @Operation(summary = "取消會議室訂單")
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     public RespWrapper<Void> deleteBooking(@PathVariable @Parameter(description = "設定訂單ID", required = true) String id) {
         bookingService.removeBookingById(id);
         return RespWrapper.success(null);
@@ -106,7 +84,7 @@ public class MemberBookingCtrl {
 
     //依指定BookingId更新會議室預定欄位(完成)
     @Operation(summary = "更改會議室")
-    @PutMapping("/{id}")
+    @PutMapping("/update/{id}")
     public RespWrapper<BookingDto> updateBooking(@PathVariable @Parameter(description = "設定訂單ID", required = true) String id, @Validated @RequestBody BookingUpdates body) {
         return bookingService.updateBooking(id, body)
                 .map(booking -> modelMapper.map(booking, BookingDto.class))
@@ -123,6 +101,21 @@ public class MemberBookingCtrl {
                 .map(booking -> modelMapper.map(booking, BookingDto.class))
                 .map(RespWrapper::success)
                 .get();
+    }
+
+    @GetMapping("/{roomId}/available-hourly-time-slots")
+    public ResponseEntity<List<Map<String, String>>> getAvailableHourlyTimeSlots(
+            @PathVariable int roomId) {
+        // 调用 BookingService 中的方法来获取可用时间段
+        Option<List<Map<String, String>>> optionalTimeSlots = bookingService.getAvailableTimeSlots(roomId);
+
+        if (optionalTimeSlots.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        List<Map<String, String>> availableTimeSlots = optionalTimeSlots.get();
+
+        return ResponseEntity.ok(availableTimeSlots);
     }
 
 }

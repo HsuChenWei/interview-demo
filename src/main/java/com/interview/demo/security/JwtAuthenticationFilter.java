@@ -3,7 +3,6 @@ package com.interview.demo.security;
 
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.interview.demo.repository.UserRoleRepository;
 import com.interview.demo.service.UserService;
 import com.interview.demo.service.impl.jwt.JwtHelper;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +21,6 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -41,17 +39,13 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     @Autowired
     private UserService userService;
 
-    @Autowired
-    private UserRoleRepository userRoleRepository;
-
-
     private final String BEARER_PREFIX = "Bearer";
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         String authToken = httpRequest.getHeader(this.tokenHeader);
-        if (authToken != null && !authToken.isEmpty() && authToken.startsWith(BEARER_PREFIX)) {
+        if (authToken != null && authToken.startsWith(BEARER_PREFIX)) {
             try {
                 authToken = authToken.substring(BEARER_PREFIX.length()).trim();
                 DecodedJWT jwt = jwtHelper.verify(authToken);
@@ -62,7 +56,6 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                 Date accessExpiredAtDate = jwt.getExpiresAt();
                 Instant accessExpiredAtInstant = accessExpiredAtDate.toInstant();
                 OffsetDateTime accessExpiredAt = OffsetDateTime.ofInstant(accessExpiredAtInstant, ZoneOffset.UTC);
-                LocalDateTime localAccessExpiredAt = accessExpiredAt.toLocalDateTime();
 
                 jwt.getExpiresAt();
 
@@ -80,12 +73,10 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                         })
                         .getOrElse(() -> null);
 
-
                 if (authentication != null) {
                     authentication.setDetails(userId);
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
-
             } catch (JWTVerificationException | UsernameNotFoundException ex) {
                 log.warn("Invalid authorization token: " + ex.getMessage());
             }

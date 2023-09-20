@@ -5,6 +5,7 @@ import com.interview.demo.error.BadRequestException;
 import com.interview.demo.model.Security.TokenPair;
 import com.interview.demo.model.User.UserCreate;
 import com.interview.demo.model.User.UserDto;
+import com.interview.demo.model.User.UserList;
 import com.interview.demo.model.User.UserLogin;
 import com.interview.demo.model.wrapper.RespWrapper;
 import com.interview.demo.service.UserService;
@@ -36,7 +37,7 @@ public class UserCtrl {
 
     //會員登入(完成)
     @Operation(summary = "會員登入")
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/login")
     public RespWrapper<TokenPair> userLogin(@RequestBody UserLogin body) {
         Option<TokenPair> userOption = userService.userLogin(body);
@@ -46,8 +47,9 @@ public class UserCtrl {
                 .getOrElseThrow(() -> new BadRequestException(ApiErrorCode.USERNAME_OR_PASSWORD_ERROR));
     }
 
+    //會員註冊(完成)
     @Operation(summary = "會員註冊")
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/register")
     public RespWrapper<UserDto> register(@Validated @RequestBody UserCreate body) {
         return userService.createUser(body)
@@ -61,10 +63,10 @@ public class UserCtrl {
     @Operation(summary = "查詢所有會員資料")
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    public RespWrapper<List<UserDto>> findAllUser(){
-        return RespWrapper.success(userService.findAllUser()
+    public RespWrapper<List<UserList>> findAllUser(){
+        return RespWrapper.success(userService.getAllUserWithRole()
                 .stream()
-                .map(u -> modelMapper.map(u, UserDto.class))
+                .map(u -> modelMapper.map(u, UserList.class))
                 .collect(Collectors.toList()));
     }
 
@@ -72,9 +74,9 @@ public class UserCtrl {
     @Operation(summary = "查詢單一會員資料")
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
-    public RespWrapper<UserDto> findUserById(@PathVariable @Parameter(description = "設定會員 ID", required = true) String id){
-        return userService.getUserById(id)
-                .map(user -> modelMapper.map(user, UserDto.class))
+    public RespWrapper<UserList> findUserById(@PathVariable @Parameter(description = "設定會員 ID", required = true) String id){
+        return userService.getUserByIdWithRole(id)
+                .map(user -> modelMapper.map(user, UserList.class))
                 .map(RespWrapper::success)
                 .getOrElseThrow(() -> new BadRequestException(ApiErrorCode.USER_NOT_FOUND));
     }

@@ -26,9 +26,10 @@ import org.springframework.stereotype.Service;
 
 import javax.jdo.annotations.Transactional;
 import java.sql.Timestamp;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 
 @Service
 public class BookingServiceImpl implements BookingService {
@@ -57,28 +58,41 @@ public class BookingServiceImpl implements BookingService {
         Specification<Booking> spec = Specification.where(null);
 
         if (id != null) {
+            assert spec != null;
             spec = spec.and((root, query, criteriaBuilder) ->
                     criteriaBuilder.equal(root.get("id"), id)
             );
         }
         if (roomId != null) {
+            assert spec != null;
             spec = spec.and((root, query, criteriaBuilder) ->
                     criteriaBuilder.equal(root.get("roomId"), roomId)
             );
         }
         if (userId != null) {
+            assert spec != null;
             spec = spec.and((root, query, criteriaBuilder) ->
                     criteriaBuilder.equal(root.get("userId"), userId)
             );
         }
         if (startTime != null) {
+            assert spec != null;
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            LocalDateTime startDate = LocalDateTime.parse(startTime, formatter);
+            Date startAsDate = Date.from(startDate.atZone(ZoneId.systemDefault()).toInstant());
+
             spec = spec.and((root, query, criteriaBuilder) ->
-                    criteriaBuilder.greaterThanOrEqualTo(root.get("startTime"), startTime)
+                    criteriaBuilder.greaterThanOrEqualTo(root.get("startTime"), startAsDate)
             );
         }
         if (endTime != null) {
+            assert spec != null;
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            LocalDateTime endDate = LocalDateTime.parse(endTime, formatter);
+            Date endAsDate = Date.from(endDate.atZone(ZoneId.systemDefault()).toInstant());
+
             spec = spec.and((root, query, criteriaBuilder) ->
-                    criteriaBuilder.lessThanOrEqualTo(root.get("endTime"), endTime)
+                    criteriaBuilder.lessThanOrEqualTo(root.get("endTime"), endAsDate)
             );
         }
 
@@ -99,12 +113,14 @@ public class BookingServiceImpl implements BookingService {
                 .fetch());
     }
 
-    //登入後取得個人資料(完成)
-    @Override
-    public Option<List<Booking>> getMySelfBookingByUserId(Authentication authentication) {
+
+    @Override//登入後取得個人所有訂單(完成)
+    public Option<List<Booking>> getOwnBookingByUserId(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             return Option.none();
         }
+
+        //取得有權限的帳號
         String currentUsername = authentication.getName();
 
         QBooking booking = QBooking.booking;
@@ -133,6 +149,7 @@ public class BookingServiceImpl implements BookingService {
     @Override//取消會議室訂單(完成)
     @Transactional
     public void removeBookingById(String id) {
+        //取得訂單是否存在
         Booking existed = getBookingById(id).getOrElseThrow(() -> new BadRequestException(ApiErrorCode.BOOKING_NOT_FOUND));
         bookingRepository.delete(existed);
     }
@@ -140,11 +157,13 @@ public class BookingServiceImpl implements BookingService {
     @Override//會議室訂單更新(完成)
     @Transactional
     public Option<Booking> updateBooking(String id, BookingUpdates updates) {
+        //取得訂單是否存在
         Booking existed = getBookingById(id).getOrElseThrow(() -> new BadRequestException(ApiErrorCode.BOOKING_NOT_FOUND));
         if(updates.getEndTime().before(updates.
         getStartTime())){
             throw new BadRequestException(ApiErrorCode.START_TIME_AFTER_END_TIME);
         }
+        //設定更新參數
         existed.setStartTime(updates.getStartTime());
         existed.setEndTime(updates.getEndTime());
         existed.setRoomId(updates.getRoomId());
@@ -152,8 +171,8 @@ public class BookingServiceImpl implements BookingService {
 
     }
 
-    //預定完會議室後，會員會被重複註冊(完成)
-    @Override
+
+    @Override//預定會議室(完成)
     @Transactional
     public Option<Booking> createBooking(BookingCreation creation) throws NotFoundException {
 
@@ -162,11 +181,12 @@ public class BookingServiceImpl implements BookingService {
         if (authentication != null && authentication.isAuthenticated()) {
 
             String userId = authentication.getName();
-            // get 會議室
+            //檢查會議室是否存在
             Room room = roomRepository.findById(creation.getRoomId())
                     .orElseThrow(() -> new NotFoundException("Room not found"));
 
-            // get 會議室的預定 (今天以後)
+
+            // 會議室的預定 (今天以後)
             LocalDateTime todayStart = LocalDate.now().atStartOfDay();
             List<Booking> existingBookings = bookingRepository.findByRoomIdAndStartTimeAfter(
                     room.getId(), Timestamp.valueOf(todayStart));
@@ -177,22 +197,26 @@ public class BookingServiceImpl implements BookingService {
                             (creation.getStartTime().before(existingBooking.getEndTime()) &&
                                     creation.getEndTime().after(existingBooking.getStartTime())));
 
-            //如果有重疊，拋出錯誤(EXCEPTION)
+            //如果有重疊拋出錯誤
             if (isOverlap) {
                 throw new RuntimeException("Booking time overlaps with existing bookings");
             }
 
-            //判斷開始時間是否在今天之前的日期
-            if (creation.getStartTime().toLocalDateTime().isBefore(todayStart)) {
-                throw new BadRequestException(ApiErrorCode.START_DATE_BEFORE_TODAY);
+            LocalDateTime currentTime = LocalDateTime.now();
+
+            LocalDateTime adjustedStartTime = creation.getStartTime().toLocalDateTime().minusHours(8);
+            LocalDateTime adjustedEndTime = creation.getEndTime().toLocalDateTime().minusHours(8);
+
+            LocalTime startTimeInTaipei = adjustedStartTime.toLocalTime();
+            LocalTime endTimeInTaipei = adjustedEndTime.toLocalTime();
+
+            if (startTimeInTaipei.isBefore(LocalTime.of(8, 0)) || endTimeInTaipei.isAfter(LocalTime.of(17, 0))) {
+                throw new BadRequestException(ApiErrorCode.Booking_time_must_be_between_8AM_and_5_PM);
             }
 
-            //判斷結束時間是否早於開始時間
-            if (creation.getEndTime().before(creation.getStartTime())) {
-                throw new BadRequestException(ApiErrorCode.START_TIME_AFTER_END_TIME);
-            }
 
-            // SAVE
+
+            // SAVE設定存取參數
             Booking b = new Booking();
             b.setUserId(userId);
             b.setRoomId(creation.getRoomId());
@@ -205,12 +229,91 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public Option<Booking> getRoomId(String roomId) {
-        QBooking booking = QBooking.booking;
-        return Option.of(queryCtx.newQuery()
-                .selectFrom(booking)
-                .where(booking.roomId.eq(Integer.valueOf(roomId)))
-                .fetchOne());
+    public Option<List<Map<String, String>>> getAvailableTimeSlots(int roomId) {
+        ZoneId taiwanTimeZone = ZoneId.of("Asia/Taipei");
+        ZonedDateTime taiwanNow = ZonedDateTime.now(taiwanTimeZone);
+
+        LocalTime bookingStartTime = LocalTime.of(8, 0);
+        LocalTime bookingEndTime = LocalTime.of(17, 0);
+
+        Timestamp startTimestamp = Timestamp.from(taiwanNow.with(LocalTime.MIN).toInstant());
+        Timestamp endTimestamp = Timestamp.from(taiwanNow.with(LocalTime.MAX).plusDays(30).withDayOfMonth(1).toInstant());
+
+        List<Booking> bookedSlots = bookingRepository.findBookingsByRoomIdAndTimeRange(
+                roomId,
+                startTimestamp,
+                endTimestamp
+        );
+
+        List<Map<String, ZonedDateTime>> availableTimeSlots = calculateAvailableTimeSlots(
+                bookingStartTime, bookingEndTime, bookedSlots, taiwanNow
+        );
+
+        List<Map<String, String>> formattedTimeSlots = convertToFormattedString(availableTimeSlots);
+
+
+        return Option.of(formattedTimeSlots);
+    }
+    private List<Map<String, ZonedDateTime>> calculateAvailableTimeSlots(
+            LocalTime workStartTime, LocalTime workEndTime, List<Booking> bookedSlots, ZonedDateTime taiwanNow) {
+
+        List<Map<String, ZonedDateTime>> availableTimeSlots = new ArrayList<>();
+        ZonedDateTime currentDateTime = taiwanNow.with(workStartTime);
+        ZonedDateTime endDateTime = taiwanNow.plusMonths(1);
+
+        if (taiwanNow.toLocalTime().isAfter(workEndTime)) {
+            currentDateTime = taiwanNow.plusDays(1).with(workStartTime);
+        } else if (taiwanNow.toLocalTime().isAfter(workStartTime)) {
+            currentDateTime = taiwanNow.truncatedTo(ChronoUnit.HOURS).plusHours(1);
+        }
+
+        while (currentDateTime.isBefore(endDateTime)) {
+            ZonedDateTime slotStartTime = currentDateTime;
+            ZonedDateTime slotEndTime = currentDateTime.plusHours(1);
+
+            if (slotStartTime.toLocalTime().isAfter(workStartTime.minusMinutes(1)) &&
+                    slotEndTime.toLocalTime().isBefore(workEndTime.plusMinutes(1))) {
+                boolean isBooked = bookedSlots.stream().anyMatch(booking -> {
+                    ZonedDateTime bookingStartTime = booking.getStartTime().toInstant().atZone(taiwanNow.getZone());
+                    ZonedDateTime bookingEndTime = booking.getEndTime().toInstant().atZone(taiwanNow.getZone());
+
+                    return (slotStartTime.isBefore(bookingEndTime) && slotEndTime.isAfter(bookingStartTime));
+                });
+
+
+                if (!isBooked) {
+                    Map<String, ZonedDateTime> timeSlot = new HashMap<>();
+                    timeSlot.put("startTime", slotStartTime);
+                    timeSlot.put("endTime", slotEndTime);
+                    availableTimeSlots.add(timeSlot);
+                }
+            }
+            currentDateTime = currentDateTime.plusHours(1);
+
+            if (currentDateTime.toLocalTime().isAfter(workEndTime)) {
+                currentDateTime = ZonedDateTime.of(
+                        currentDateTime.toLocalDate().plusDays(1),
+                        workStartTime,
+                        taiwanNow.getZone()
+                );
+            }
+        }
+
+        return availableTimeSlots;
+    }
+
+    public List<Map<String, String>> convertToFormattedString(List<Map<String, ZonedDateTime>> originalList) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        List<Map<String, String>> newList = new ArrayList<>();
+
+        for (Map<String, ZonedDateTime> originalMap : originalList) {
+            Map<String, String> newMap = new HashMap<>();
+            for (Map.Entry<String, ZonedDateTime> entry : originalMap.entrySet()) {
+                newMap.put(entry.getKey(), entry.getValue().format(formatter));
+            }
+            newList.add(newMap);
+        }
+        return newList;
     }
 
 }

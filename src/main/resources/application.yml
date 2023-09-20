@@ -6,6 +6,9 @@ spring:
   thymeleaf:
     mode: HTML
 
+  jackson:
+    time-zone: Asia/Taipei
+
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://35.201.132.66:3306/internal_weichen_dev?useUnicode=true&characterEncoding=utf-8
@@ -35,3 +38,5 @@ jwt:
     server:
       url: http://localhost:${server.port}
       description: Local server
+
+
