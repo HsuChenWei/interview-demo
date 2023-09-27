@@ -45,7 +45,6 @@ public class BookingCtrl {
             @RequestParam(required = false) @Parameter(description = "使用者ID") String userId,
             @RequestParam(required = false) @Parameter(description = "開始時間") String startTime,
             @RequestParam(required = false) @Parameter(description = "結束時間") String endTime) {
-//        List<Booking> filteredBookings = bookingService.findFilteredBookings(page, size, roomId, userId, startTime, endTime, id);
         return RespWrapper.success(bookingService.findFilteredBookings(page, size, roomId, userId, startTime, endTime, id)
                 .stream()
                 .map(b -> modelMapper.map(b, BookingDto.class))
@@ -101,11 +100,13 @@ public class BookingCtrl {
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public RespWrapper<BookingDto> createBooking(@RequestBody BookingCreation body) throws NotFoundException {
+        System.out.println(body.getStartTime());
         return bookingService.createBooking(body)
                 .flatMap(f -> bookingService.getBookingById(f.getId()))
                 .map(booking -> modelMapper.map(booking, BookingDto.class))
                 .map(RespWrapper::success)
                 .get();
+
     }
 
 }

@@ -49,7 +49,6 @@ public class UserCtrl {
 
     //會員註冊(完成)
     @Operation(summary = "會員註冊")
-//    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/register")
     public RespWrapper<UserDto> register(@Validated @RequestBody UserCreate body) {
         return userService.createUser(body)

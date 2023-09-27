@@ -7,7 +7,7 @@ import lombok.Data;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 @Data
 @Entity
@@ -29,12 +29,14 @@ public class Booking {
     private int roomId;
 
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
+//    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
     @Column(name = "start_time")
-    private Timestamp startTime;
+    private LocalDateTime startTime;
 
+//    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     @Column(name = "end_time")
-    private Timestamp endTime;
+    private LocalDateTime endTime;
 
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "user_id", insertable = false, updatable = false)

@@ -13,16 +13,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import io.vavr.control.Option;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import javax.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/api/member/user")
@@ -56,20 +51,6 @@ public class MemberUserCtrl {
                 .map(RespWrapper::success)
                 .get();
     }
-
-    @Operation(summary = "會員登出")
-    @PostMapping("/logout")
-    public ResponseEntity<String> Logout(HttpServletRequest request) {
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication != null && authentication.isAuthenticated()) {
-            authentication.setAuthenticated(false);
-        }
-//        request.getSession().invalidate();
-        return ResponseEntity.ok("Logged out successfully");
-    }
-
 
     // Todo: 確認角色權限修改是否整合在這.
     /**

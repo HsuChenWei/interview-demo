@@ -14,7 +14,6 @@ import com.interview.demo.repository.querydsl.QuerydslRepository;
 import com.interview.demo.service.BookingService;
 import io.vavr.control.Option;
 import javassist.NotFoundException;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,7 +24,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.jdo.annotations.Transactional;
-import java.sql.Timestamp;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -43,15 +41,14 @@ public class BookingServiceImpl implements BookingService {
     @Autowired
     private RoomRepository roomRepository;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    public static final LocalTime DEFAULT_BOOKING_START_TIME = LocalTime.of(8, 0);;
+
+    public static final LocalTime DEFAULT_BOOKING_END_TIME = LocalTime.of(17, 0);;
 
     @Override//查詢所有預定會議室訂單(完成)
     public List<Booking> findAllBooking() {
         return bookingRepository.findAll();
     }
-
-
 
     @Override//分頁查詢
     public List<Booking> findFilteredBookings(int page, int size, String roomId, String userId, String startTime, String endTime, String id) {
@@ -159,7 +156,7 @@ public class BookingServiceImpl implements BookingService {
     public Option<Booking> updateBooking(String id, BookingUpdates updates) {
         //取得訂單是否存在
         Booking existed = getBookingById(id).getOrElseThrow(() -> new BadRequestException(ApiErrorCode.BOOKING_NOT_FOUND));
-        if(updates.getEndTime().before(updates.
+        if(updates.getEndTime().isBefore(updates.
         getStartTime())){
             throw new BadRequestException(ApiErrorCode.START_TIME_AFTER_END_TIME);
         }
@@ -185,36 +182,28 @@ public class BookingServiceImpl implements BookingService {
             Room room = roomRepository.findById(creation.getRoomId())
                     .orElseThrow(() -> new NotFoundException("Room not found"));
 
-
             // 會議室的預定 (今天以後)
             LocalDateTime todayStart = LocalDate.now().atStartOfDay();
-            List<Booking> existingBookings = bookingRepository.findByRoomIdAndStartTimeAfter(
-                    room.getId(), Timestamp.valueOf(todayStart));
+            List<Booking> existingBookings = bookingRepository.findByRoomIdAndStartTimeAfter(room.getId(), todayStart);
 
             // 檢查要設定的時間是否有重疊
             boolean isOverlap = existingBookings.stream()
                     .anyMatch(existingBooking ->
-                            (creation.getStartTime().before(existingBooking.getEndTime()) &&
-                                    creation.getEndTime().after(existingBooking.getStartTime())));
+                            (creation.getStartTime().isBefore(existingBooking.getEndTime()) &&
+                                    creation.getEndTime().isAfter(existingBooking.getStartTime())));
 
             //如果有重疊拋出錯誤
             if (isOverlap) {
                 throw new RuntimeException("Booking time overlaps with existing bookings");
             }
 
-            LocalDateTime currentTime = LocalDateTime.now();
-
-            LocalDateTime adjustedStartTime = creation.getStartTime().toLocalDateTime().minusHours(8);
-            LocalDateTime adjustedEndTime = creation.getEndTime().toLocalDateTime().minusHours(8);
-
-            LocalTime startTimeInTaipei = adjustedStartTime.toLocalTime();
-            LocalTime endTimeInTaipei = adjustedEndTime.toLocalTime();
+            //LocalDateTime轉成LocalTime
+            LocalTime startTimeInTaipei = creation.getStartTime().toLocalTime();
+            LocalTime endTimeInTaipei = creation.getEndTime().toLocalTime();
 
             if (startTimeInTaipei.isBefore(LocalTime.of(8, 0)) || endTimeInTaipei.isAfter(LocalTime.of(17, 0))) {
                 throw new BadRequestException(ApiErrorCode.Booking_time_must_be_between_8AM_and_5_PM);
             }
-
-
 
             // SAVE設定存取參數
             Booking b = new Booking();
@@ -230,56 +219,57 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Option<List<Map<String, String>>> getAvailableTimeSlots(int roomId) {
+        //設定成台北時區
         ZoneId taiwanTimeZone = ZoneId.of("Asia/Taipei");
-        ZonedDateTime taiwanNow = ZonedDateTime.now(taiwanTimeZone);
-
-        LocalTime bookingStartTime = LocalTime.of(8, 0);
-        LocalTime bookingEndTime = LocalTime.of(17, 0);
-
-        Timestamp startTimestamp = Timestamp.from(taiwanNow.with(LocalTime.MIN).toInstant());
-        Timestamp endTimestamp = Timestamp.from(taiwanNow.with(LocalTime.MAX).plusDays(30).withDayOfMonth(1).toInstant());
+        ZonedDateTime startDateTime = ZonedDateTime.now(taiwanTimeZone).with(LocalTime.MIN);
+        ZonedDateTime endDateTime = ZonedDateTime.now(taiwanTimeZone).plusDays(30).withDayOfMonth(1).with(LocalTime.MAX);
 
         List<Booking> bookedSlots = bookingRepository.findBookingsByRoomIdAndTimeRange(
                 roomId,
-                startTimestamp,
-                endTimestamp
+                //轉成LocalDateTime
+                startDateTime.toLocalDateTime(),
+                endDateTime.toLocalDateTime()
         );
 
+        System.out.println(bookedSlots);
+
         List<Map<String, ZonedDateTime>> availableTimeSlots = calculateAvailableTimeSlots(
-                bookingStartTime, bookingEndTime, bookedSlots, taiwanNow
+                bookedSlots, startDateTime
         );
 
         List<Map<String, String>> formattedTimeSlots = convertToFormattedString(availableTimeSlots);
 
-
         return Option.of(formattedTimeSlots);
     }
+
     private List<Map<String, ZonedDateTime>> calculateAvailableTimeSlots(
-            LocalTime workStartTime, LocalTime workEndTime, List<Booking> bookedSlots, ZonedDateTime taiwanNow) {
+             List<Booking> bookedSlots, ZonedDateTime taiwanNow) {
 
         List<Map<String, ZonedDateTime>> availableTimeSlots = new ArrayList<>();
-        ZonedDateTime currentDateTime = taiwanNow.with(workStartTime);
+        ZonedDateTime currentDateTime = taiwanNow.with(DEFAULT_BOOKING_START_TIME);
         ZonedDateTime endDateTime = taiwanNow.plusMonths(1);
 
-        if (taiwanNow.toLocalTime().isAfter(workEndTime)) {
-            currentDateTime = taiwanNow.plusDays(1).with(workStartTime);
-        } else if (taiwanNow.toLocalTime().isAfter(workStartTime)) {
+        if (taiwanNow.toLocalTime().isAfter(DEFAULT_BOOKING_END_TIME)) {
+            currentDateTime = taiwanNow.plusDays(1).with(DEFAULT_BOOKING_START_TIME);
+        } else if (taiwanNow.toLocalTime().isAfter(DEFAULT_BOOKING_START_TIME)) {
             currentDateTime = taiwanNow.truncatedTo(ChronoUnit.HOURS).plusHours(1);
         }
 
         while (currentDateTime.isBefore(endDateTime)) {
             ZonedDateTime slotStartTime = currentDateTime;
             ZonedDateTime slotEndTime = currentDateTime.plusHours(1);
-
-            if (slotStartTime.toLocalTime().isAfter(workStartTime.minusMinutes(1)) &&
-                    slotEndTime.toLocalTime().isBefore(workEndTime.plusMinutes(1))) {
+            if (slotStartTime.toLocalTime().isAfter(DEFAULT_BOOKING_START_TIME.minusMinutes(1)) &&
+                    slotEndTime.toLocalTime().isBefore(DEFAULT_BOOKING_END_TIME.plusMinutes(1))) {
                 boolean isBooked = bookedSlots.stream().anyMatch(booking -> {
-                    ZonedDateTime bookingStartTime = booking.getStartTime().toInstant().atZone(taiwanNow.getZone());
-                    ZonedDateTime bookingEndTime = booking.getEndTime().toInstant().atZone(taiwanNow.getZone());
+                    LocalDateTime startInstant = booking.getStartTime();
+                    LocalDateTime endInstant = booking.getEndTime();
 
-                    return (slotStartTime.isBefore(bookingEndTime) && slotEndTime.isAfter(bookingStartTime));
+                    ZonedDateTime bookingStartTime = startInstant.atZone(taiwanNow.getZone());
+                    ZonedDateTime bookingEndTime = endInstant.atZone(taiwanNow.getZone());
+
+
+                    return (bookingStartTime.isBefore(slotEndTime) && bookingEndTime.isAfter(slotStartTime));
                 });
-
 
                 if (!isBooked) {
                     Map<String, ZonedDateTime> timeSlot = new HashMap<>();
@@ -290,14 +280,15 @@ public class BookingServiceImpl implements BookingService {
             }
             currentDateTime = currentDateTime.plusHours(1);
 
-            if (currentDateTime.toLocalTime().isAfter(workEndTime)) {
+            if (currentDateTime.toLocalTime().isAfter(DEFAULT_BOOKING_END_TIME)) {
                 currentDateTime = ZonedDateTime.of(
                         currentDateTime.toLocalDate().plusDays(1),
-                        workStartTime,
+                        DEFAULT_BOOKING_START_TIME,
                         taiwanNow.getZone()
                 );
             }
         }
+
 
         return availableTimeSlots;
     }
@@ -315,5 +306,7 @@ public class BookingServiceImpl implements BookingService {
         }
         return newList;
     }
-
+    private static boolean isBetween(ZonedDateTime target, ZonedDateTime start, ZonedDateTime end) {
+        return !target.isBefore(start) && !target.isAfter(end);
+    }
 }

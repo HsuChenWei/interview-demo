@@ -120,13 +120,13 @@ public class UserServiceImpl implements UserService {
         String encryptedPassword = passwordEncoder.encode(creation.getUserPwd());
         user.setUserPwd(encryptedPassword);
 
-        User res = userRepository.save(user);
+        User newUser = userRepository.save(user);
         //同時新增使用者角色
         UserRole userRole = new UserRole();
-        userRole.setId(res.getId());//設定與userId相同的roleId
+        userRole.setId(newUser.getId());//設定與userId相同的roleId
         userRole.setUserType(0);//初始設定值為0(一般用戶)
         userRoleRepository.save(userRole);
-        return Option.of(res);
+        return Option.of(newUser);
     }
 
     //取得會員帳號
