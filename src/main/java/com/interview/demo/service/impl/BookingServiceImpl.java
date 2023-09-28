@@ -219,21 +219,18 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Option<List<Map<String, String>>> getAvailableTimeSlots(int roomId) {
-        //設定成台北時區
-        ZoneId taiwanTimeZone = ZoneId.of("Asia/Taipei");
-        ZonedDateTime startDateTime = ZonedDateTime.now(taiwanTimeZone).with(LocalTime.MIN);
-        ZonedDateTime endDateTime = ZonedDateTime.now(taiwanTimeZone).plusDays(30).withDayOfMonth(1).with(LocalTime.MAX);
+
+        LocalDateTime startDateTime = LocalDateTime.now().with(LocalTime.MIN);
+        LocalDateTime endDateTime = LocalDateTime.now().plusDays(30).withDayOfMonth(1).with(LocalTime.MAX);
 
         List<Booking> bookedSlots = bookingRepository.findBookingsByRoomIdAndTimeRange(
                 roomId,
                 //轉成LocalDateTime
-                startDateTime.toLocalDateTime(),
-                endDateTime.toLocalDateTime()
+                startDateTime,
+                endDateTime
         );
 
-        System.out.println(bookedSlots);
-
-        List<Map<String, ZonedDateTime>> availableTimeSlots = calculateAvailableTimeSlots(
+        List<Map<String, LocalDateTime>> availableTimeSlots = calculateAvailableTimeSlots(
                 bookedSlots, startDateTime
         );
 
@@ -242,12 +239,12 @@ public class BookingServiceImpl implements BookingService {
         return Option.of(formattedTimeSlots);
     }
 
-    private List<Map<String, ZonedDateTime>> calculateAvailableTimeSlots(
-             List<Booking> bookedSlots, ZonedDateTime taiwanNow) {
+    private List<Map<String, LocalDateTime>> calculateAvailableTimeSlots(
+             List<Booking> bookedSlots, LocalDateTime taiwanNow) {
 
-        List<Map<String, ZonedDateTime>> availableTimeSlots = new ArrayList<>();
-        ZonedDateTime currentDateTime = taiwanNow.with(DEFAULT_BOOKING_START_TIME);
-        ZonedDateTime endDateTime = taiwanNow.plusMonths(1);
+        List<Map<String, LocalDateTime>> availableTimeSlots = new ArrayList<>();
+        LocalDateTime currentDateTime = taiwanNow.with(DEFAULT_BOOKING_START_TIME);
+        LocalDateTime endDateTime = taiwanNow.plusMonths(1);
 
         if (taiwanNow.toLocalTime().isAfter(DEFAULT_BOOKING_END_TIME)) {
             currentDateTime = taiwanNow.plusDays(1).with(DEFAULT_BOOKING_START_TIME);
@@ -256,23 +253,19 @@ public class BookingServiceImpl implements BookingService {
         }
 
         while (currentDateTime.isBefore(endDateTime)) {
-            ZonedDateTime slotStartTime = currentDateTime;
-            ZonedDateTime slotEndTime = currentDateTime.plusHours(1);
+            LocalDateTime slotStartTime = currentDateTime;
+            LocalDateTime slotEndTime = currentDateTime.plusHours(1);
             if (slotStartTime.toLocalTime().isAfter(DEFAULT_BOOKING_START_TIME.minusMinutes(1)) &&
                     slotEndTime.toLocalTime().isBefore(DEFAULT_BOOKING_END_TIME.plusMinutes(1))) {
                 boolean isBooked = bookedSlots.stream().anyMatch(booking -> {
                     LocalDateTime startInstant = booking.getStartTime();
                     LocalDateTime endInstant = booking.getEndTime();
 
-                    ZonedDateTime bookingStartTime = startInstant.atZone(taiwanNow.getZone());
-                    ZonedDateTime bookingEndTime = endInstant.atZone(taiwanNow.getZone());
-
-
-                    return (bookingStartTime.isBefore(slotEndTime) && bookingEndTime.isAfter(slotStartTime));
+                    return (startInstant.isBefore(slotEndTime) && endInstant.isAfter(slotStartTime));
                 });
 
                 if (!isBooked) {
-                    Map<String, ZonedDateTime> timeSlot = new HashMap<>();
+                    Map<String, LocalDateTime> timeSlot = new HashMap<>();
                     timeSlot.put("startTime", slotStartTime);
                     timeSlot.put("endTime", slotEndTime);
                     availableTimeSlots.add(timeSlot);
@@ -281,32 +274,26 @@ public class BookingServiceImpl implements BookingService {
             currentDateTime = currentDateTime.plusHours(1);
 
             if (currentDateTime.toLocalTime().isAfter(DEFAULT_BOOKING_END_TIME)) {
-                currentDateTime = ZonedDateTime.of(
+                currentDateTime = LocalDateTime.of(
                         currentDateTime.toLocalDate().plusDays(1),
-                        DEFAULT_BOOKING_START_TIME,
-                        taiwanNow.getZone()
+                        DEFAULT_BOOKING_START_TIME
                 );
             }
         }
-
-
         return availableTimeSlots;
     }
 
-    public List<Map<String, String>> convertToFormattedString(List<Map<String, ZonedDateTime>> originalList) {
+    public List<Map<String, String>> convertToFormattedString(List<Map<String, LocalDateTime>> originalList) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         List<Map<String, String>> newList = new ArrayList<>();
 
-        for (Map<String, ZonedDateTime> originalMap : originalList) {
+        for (Map<String, LocalDateTime> originalMap : originalList) {
             Map<String, String> newMap = new HashMap<>();
-            for (Map.Entry<String, ZonedDateTime> entry : originalMap.entrySet()) {
+            for (Map.Entry<String, LocalDateTime> entry : originalMap.entrySet()) {
                 newMap.put(entry.getKey(), entry.getValue().format(formatter));
             }
             newList.add(newMap);
         }
         return newList;
-    }
-    private static boolean isBetween(ZonedDateTime target, ZonedDateTime start, ZonedDateTime end) {
-        return !target.isBefore(start) && !target.isAfter(end);
     }
 }
