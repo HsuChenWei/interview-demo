@@ -22,9 +22,12 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.jdo.annotations.Transactional;
-import java.time.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -225,7 +228,6 @@ public class BookingServiceImpl implements BookingService {
 
         List<Booking> bookedSlots = bookingRepository.findBookingsByRoomIdAndTimeRange(
                 roomId,
-                //轉成LocalDateTime
                 startDateTime,
                 endDateTime
         );
@@ -255,6 +257,8 @@ public class BookingServiceImpl implements BookingService {
         while (currentDateTime.isBefore(endDateTime)) {
             LocalDateTime slotStartTime = currentDateTime;
             LocalDateTime slotEndTime = currentDateTime.plusHours(1);
+
+            //把LocalDateTime轉成LocalTime只比對小時不比對日期
             if (slotStartTime.toLocalTime().isAfter(DEFAULT_BOOKING_START_TIME.minusMinutes(1)) &&
                     slotEndTime.toLocalTime().isBefore(DEFAULT_BOOKING_END_TIME.plusMinutes(1))) {
                 boolean isBooked = bookedSlots.stream().anyMatch(booking -> {
@@ -273,6 +277,7 @@ public class BookingServiceImpl implements BookingService {
             }
             currentDateTime = currentDateTime.plusHours(1);
 
+            //如果超過當日17時自動加一天
             if (currentDateTime.toLocalTime().isAfter(DEFAULT_BOOKING_END_TIME)) {
                 currentDateTime = LocalDateTime.of(
                         currentDateTime.toLocalDate().plusDays(1),
@@ -296,4 +301,5 @@ public class BookingServiceImpl implements BookingService {
         }
         return newList;
     }
+
 }

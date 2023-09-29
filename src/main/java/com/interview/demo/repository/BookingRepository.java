@@ -25,4 +25,7 @@ public interface BookingRepository extends JpaRepository<Booking, String> {
             @Param("startDateTime") LocalDateTime startDateTime,
             @Param("endDateTime") LocalDateTime endDateTime
     );
+
+
+
 }

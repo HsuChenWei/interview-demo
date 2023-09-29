@@ -18,7 +18,6 @@ import io.vavr.control.Option;
 import javassist.NotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -104,18 +103,17 @@ public class MemberBookingCtrl {
     }
 
     @GetMapping("/{roomId}/available-hourly-time-slots")
-    public ResponseEntity<List<Map<String, String>>> getAvailableHourlyTimeSlots(
+    public RespWrapper<List<Map<String, String>>> getAvailableHourlyTimeSlots(
             @PathVariable int roomId) {
-        // 调用 BookingService 中的方法来获取可用时间段
         Option<List<Map<String, String>>> optionalTimeSlots = bookingService.getAvailableTimeSlots(roomId);
 
         if (optionalTimeSlots.isEmpty()) {
-            return ResponseEntity.notFound().build();
+            throw new RuntimeException("error");
         }
 
         List<Map<String, String>> availableTimeSlots = optionalTimeSlots.get();
 
-        return ResponseEntity.ok(availableTimeSlots);
+        return RespWrapper.success(availableTimeSlots);
     }
 
 }

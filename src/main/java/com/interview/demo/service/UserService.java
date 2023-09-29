@@ -5,6 +5,7 @@ import com.interview.demo.model.Security.TokenPair;
 import com.interview.demo.model.User.UserCreate;
 import com.interview.demo.model.User.UserList;
 import com.interview.demo.model.User.UserLogin;
+import com.interview.demo.model.User.UserUpdate;
 import io.vavr.control.Option;
 
 import java.util.List;
@@ -27,4 +28,6 @@ public interface UserService {
     Option<TokenPair> userLogin(UserLogin body);
 
     List<String> getRoleTypeByUserId(String userId);
+
+    Option<User> updateUserDetailByUserName(String userName, UserUpdate theUser);
 }

@@ -3,10 +3,7 @@ package com.interview.demo.controller.admin;
 import com.interview.demo.error.ApiErrorCode;
 import com.interview.demo.error.BadRequestException;
 import com.interview.demo.model.Security.TokenPair;
-import com.interview.demo.model.User.UserCreate;
-import com.interview.demo.model.User.UserDto;
-import com.interview.demo.model.User.UserList;
-import com.interview.demo.model.User.UserLogin;
+import com.interview.demo.model.User.*;
 import com.interview.demo.model.wrapper.RespWrapper;
 import com.interview.demo.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -37,7 +34,6 @@ public class UserCtrl {
 
     //會員登入(完成)
     @Operation(summary = "會員登入")
-//    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/login")
     public RespWrapper<TokenPair> userLogin(@RequestBody UserLogin body) {
         Option<TokenPair> userOption = userService.userLogin(body);
@@ -80,9 +76,15 @@ public class UserCtrl {
                 .getOrElseThrow(() -> new BadRequestException(ApiErrorCode.USER_NOT_FOUND));
     }
 
-
-
-
+    //依會員帳號更改會員內容(完成)
+    @Operation(summary = "更改密碼")
+    @PutMapping("/{userName}")
+    public RespWrapper<UserDto> updateUserDetail(@PathVariable String userName, @RequestBody UserUpdate theUser){
+        return userService.updateUserDetailByUserName(userName, theUser)
+                .map(user -> modelMapper.map(user, UserDto.class))
+                .map(RespWrapper::success)
+                .getOrElseThrow(() -> new RuntimeException("User not found or some error message"));
+    }
 
     // Todo: 確認角色權限修改是否整合在這.
     /**
@@ -93,25 +95,6 @@ public class UserCtrl {
      * (PS: keyword: RESTful API, @RequestBody, @RequestParam, @PathVariable)
      */
 
-    //依會員帳號更改會員內容(完成)
-//    @Operation(summary = "更新會員資料")
-//    @PutMapping("/{userId}")
-//    public User updateUserDetail(@PathVariable String userId, @RequestBody User theUser){
-//        Optional<User> getUser = userService.findById(userId, theUser);
-//        Optional<User> optionalUser = userService.findById(userId);
-//        if (optionalUser.isPresent()) {
-//            User dbUser = optionalUser.get();
-//
-//            dbUser.setUserName(theUser.getUserName());
-//            dbUser.setUserPwd(theUser.getUserPwd());
-//
-//            User saveUser = userService.save(dbUser);
-//            return saveUser;
-//        } else {
-//            throw new RuntimeException("Can't found UserId：" + userId);
-//        }
-//        return theUser;
-//    }
 
 
 }
